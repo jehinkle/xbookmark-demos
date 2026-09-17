@@ -1,28 +1,14 @@
 # xbookmark-demos
 
-Personal sandbox for **Demo Lab**: throwaway demos inspired by interesting X bookmarks (and pasted links in v0).
+Demo Lab sandbox — throwaway Vite + React demos with Cloudflare Pages preview URLs on `demo/*` branches.
 
-## How demos work
+## Current demo: Knowledge → ERD
 
-1. Create a branch: `demo/YYYY-MM-DD-<slug>`
-2. Build a minimal Vite + React page that shows the idea
-3. Open a PR from that branch
-4. **Cloudflare Pages** deploys a preview URL on the PR (`*.xbookmark-demos.pages.dev`)
-
-Do **not** put secrets, API tokens, or `.env` files in this repo. Mock anything that needs keys.
-
-`main` is the production splash / home. Prefer leaving demo work on PR branches; only merge when you intentionally want something on production.
-
-## Local
+Branch `demo/2026-09-17-erd-knowledge` generates an SVG ERD from a cross-referenced clinical/EDC-style knowledge database (`src/knowledge.js`).
 
 ```bash
 npm install
 npm run dev
-npm run build   # output → dist/ (Cloudflare Pages build output)
 ```
 
-## Stack
-
-- Vite + React
-- Build command: `npm run build`
-- Output directory: `dist`
+Try: toggle entities in the left panel, click a table card to highlight related nodes/edges, flip the sample FK, hit **Rebuild diagram**.
