@@ -1,28 +1,18 @@
 # xbookmark-demos
 
-Personal sandbox for **Demo Lab**: throwaway demos inspired by interesting X bookmarks (and pasted links in v0).
+Demo Lab sandbox — throwaway Vite + React demos with Cloudflare Pages preview URLs on `demo/*` branches.
 
-## How demos work
+## Current demo: SAS UML (IR mock)
 
-1. Create a branch: `demo/YYYY-MM-DD-<slug>`
-2. Build a minimal Vite + React page that shows the idea
-3. Open a PR from that branch
-4. **Cloudflare Pages** deploys a preview URL on the PR (`*.xbookmark-demos.pages.dev`)
+Branch `demo/2026-09-22-sas-uml` — browser mock in the spirit of [unclebob/uml-viewer](https://github.com/unclebob/uml-viewer), driven by a **SAS** intermediate representation seed (not Clojure).
 
-Do **not** put secrets, API tokens, or `.env` files in this repo. Mock anything that needs keys.
-
-`main` is the production splash / home. Prefer leaving demo work on PR branches; only merge when you intentionally want something on production.
-
-## Local
+Source of truth: `src/adam-tfl.seed.json` (copied from `sas-uml-ir/examples/adam-tfl.seed.json`; see `SAS-IR-SKETCH.md`).
 
 ```bash
 npm install
 npm run dev
-npm run build   # output → dist/ (Cloudflare Pages build output)
 ```
 
-## Stack
+Try: click a package to drill in (Esc / ← to go up), click a module for path/exports/metrics/edges, select **Split ADaM: core vs AE**, toggle declutter arrows and edge-kind chips.
 
-- Vite + React
-- Build command: `npm run build`
-- Output directory: `dist`
+**Do not merge** — Demo Lab throwaway.
