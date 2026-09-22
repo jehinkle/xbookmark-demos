@@ -1,26 +1,63 @@
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import './App.css'
+import { resolveView } from './ir.js'
+import UmlCanvas from './UmlCanvas.jsx'
+import Inspector from './Inspector.jsx'
+import ClassCard from './ClassCard.jsx'
 
-function App() {
+export default function App() {
+  const [selection, setSelection] = useState('real')
+  const [focusPkgId, setFocusPkgId] = useState(null)
+  const [hideArrows, setHideArrows] = useState(false)
+  const [selectedClass, setSelectedClass] = useState(null)
+
+  const view = useMemo(() => resolveView(selection), [selection])
+
+  const goUp = useCallback(() => {
+    if (selectedClass) {
+      setSelectedClass(null)
+      return
+    }
+    setFocusPkgId(null)
+  }, [selectedClass])
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        goUp()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [goUp])
+
+  const onSelectView = (id) => {
+    setSelection(id)
+    setFocusPkgId(null)
+    setSelectedClass(null)
+  }
+
   return (
-    <main
-      style={{
-        minHeight: '100vh',
-        display: 'grid',
-        placeItems: 'center',
-        padding: '2rem',
-        fontFamily: 'system-ui, sans-serif',
-        textAlign: 'center',
-      }}
-    >
-      <div>
-        <h1 style={{ marginBottom: '0.5rem' }}>xbookmark-demos</h1>
-        <p style={{ opacity: 0.8, maxWidth: '28rem', margin: '0 auto' }}>
-          Demo Lab sandbox — throwaway Vite + React demos with Cloudflare Pages
-          preview URLs on <code>demo/*</code> branches.
-        </p>
+    <div className="app-shell">
+      <div className="canvas-pane">
+        <UmlCanvas
+          view={view}
+          focusPkgId={focusPkgId}
+          hideArrows={hideArrows}
+          onDrillPackage={(id) => setFocusPkgId(id)}
+          onSelectClass={(cls) => setSelectedClass(cls)}
+        />
       </div>
-    </main>
+      <Inspector
+        selection={selection}
+        onSelectView={onSelectView}
+        hideArrows={hideArrows}
+        onToggleArrows={setHideArrows}
+        focusPkgId={focusPkgId}
+        onGoUp={goUp}
+      />
+      <ClassCard cls={selectedClass} onClose={() => setSelectedClass(null)} />
+    </div>
   )
 }
-
-export default App

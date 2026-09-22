@@ -1,28 +1,16 @@
 # xbookmark-demos
 
-Personal sandbox for **Demo Lab**: throwaway demos inspired by interesting X bookmarks (and pasted links in v0).
+Demo Lab sandbox — throwaway Vite + React demos with Cloudflare Pages preview URLs on `demo/*` branches.
 
-## How demos work
+## Current demo: UML viewer (mock)
 
-1. Create a branch: `demo/YYYY-MM-DD-<slug>`
-2. Build a minimal Vite + React page that shows the idea
-3. Open a PR from that branch
-4. **Cloudflare Pages** deploys a preview URL on the PR (`*.xbookmark-demos.pages.dev`)
+Branch `demo/2026-09-22-uml-viewer` — browser mock inspired by [unclebob/uml-viewer](https://github.com/unclebob/uml-viewer) and [this X post](https://x.com/unclebobmartin/status/2102079838639038629).
 
-Do **not** put secrets, API tokens, or `.env` files in this repo. Mock anything that needs keys.
-
-`main` is the production splash / home. Prefer leaving demo work on PR branches; only merge when you intentionally want something on production.
-
-## Local
+Not a Clojure/Quil port. Pure React + SVG driven by a JSON IR ported from `examples/library.edn` (Lending library).
 
 ```bash
 npm install
 npm run dev
-npm run build   # output → dist/ (Cloudflare Pages build output)
 ```
 
-## Stack
-
-- Vite + React
-- Build command: `npm run build`
-- Output directory: `dist`
+Try: click a package to drill in (Esc / ← to go up), click a class for the metrics card, switch the **Split Domain / UseCases** proposal, toggle declutter arrows.
