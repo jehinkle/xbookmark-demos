@@ -1,85 +1,18 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { edgesForModule, heatFill, isViolation } from './ir.js'
+import {
+  PKG_PAD,
+  HEADER_H,
+  HUB_W,
+  HUB_H,
+  defaultLayout,
+  fanLocals,
+} from './layout.js'
 
-const PKG_PAD = 16
-const MOD_W = 148
-const MOD_H = 78
-const MOD_GAP_X = 16
-const MOD_GAP_Y = 14
-const PKG_GAP = 26
-const HEADER_H = 28
 const EXPLODE_BTN = 22
 const DRAG_THRESHOLD = 4
 const EXPAND_W = 260
 const EXPAND_H = 210
-const HUB_W = 168
-const HUB_H = HEADER_H + 36
-
-function defaultLayout(packages) {
-  let x = 40
-  const y0 = 40
-  const pkgBoxes = []
-  let maxH = 280
-
-  for (const pkg of packages) {
-    const mods = pkg.modules || []
-    const n = Math.max(mods.length, 1)
-    const cols = Math.min(n, Math.min(3, Math.max(2, Math.ceil(Math.sqrt(n)))))
-    const rows = Math.ceil(n / cols)
-    const innerW = cols * MOD_W + (cols - 1) * MOD_GAP_X
-    const innerH = rows * MOD_H + (rows - 1) * MOD_GAP_Y
-    const boxW = Math.max(innerW + PKG_PAD * 2, 160)
-    const boxH = innerH + PKG_PAD * 2 + HEADER_H
-    maxH = Math.max(maxH, boxH)
-
-    const localMods = mods.map((mod, i) => {
-      const col = i % cols
-      const row = Math.floor(i / cols)
-      return {
-        id: mod.id,
-        lx: PKG_PAD + col * (MOD_W + MOD_GAP_X),
-        ly: HEADER_H + PKG_PAD + row * (MOD_H + MOD_GAP_Y),
-        w: MOD_W,
-        h: MOD_H,
-      }
-    })
-
-    pkgBoxes.push({
-      id: pkg.id,
-      label: `${pkg.label} · L${pkg.level}`,
-      x,
-      y: y0,
-      w: boxW,
-      h: boxH,
-      localMods,
-    })
-    x += boxW + PKG_GAP
-  }
-
-  return { pkgBoxes }
-}
-
-/** Fan modules around package hub when exploded (local coords, hub at 0,0). */
-function fanLocals(mods) {
-  const n = mods.length
-  if (n === 0) return []
-  const R = Math.max(140, 80 + n * 30)
-  const cx = HUB_W / 2
-  const cy = HUB_H / 2 + 8
-  return mods.map((mod, i) => {
-    let angle
-    if (n === 1) angle = -Math.PI / 2
-    else if (n === 2) angle = -Math.PI / 2 + (i === 0 ? -0.55 : 0.55)
-    else angle = -Math.PI / 2 + (i / n) * Math.PI * 2
-    return {
-      id: mod.id,
-      lx: cx + Math.cos(angle) * R - MOD_W / 2,
-      ly: cy + Math.sin(angle) * R - MOD_H / 2,
-      w: MOD_W,
-      h: MOD_H,
-    }
-  })
-}
 
 function edgePath(a, b) {
   const dx = b.cx - a.cx
@@ -161,57 +94,64 @@ export default function Canvas({
 
       if (exploded) {
         const fan = fanLocals(pkg.modules || [])
-        const locals = fan.map((lm) => {
-          const mo = modOffsets[lm.id] || { x: 0, y: 0 }
-          return { ...lm, lx: lm.lx + mo.x, ly: lm.ly + mo.y }
+        // Exploded: modOffsets are absolute world top-left (independent of package hub).
+        const absMods = fan.map((lm) => {
+          const mo = modOffsets[lm.id]
+          const ax = mo ? mo.x : px + lm.lx
+          const ay = mo ? mo.y : py + lm.ly
+          return { ...lm, ax, ay }
         })
 
-        // Bounding hull in local space (does not move hub origin)
-        let minX = 0
-        let minY = 0
-        let maxX = HUB_W
-        let maxY = HUB_H
-        for (const lm of locals) {
-          const w = expandedModId === lm.id ? EXPAND_W : lm.w
-          const h = expandedModId === lm.id ? EXPAND_H : lm.h
-          minX = Math.min(minX, lm.lx)
-          minY = Math.min(minY, lm.ly)
-          maxX = Math.max(maxX, lm.lx + w)
-          maxY = Math.max(maxY, lm.ly + h)
+        let minX = px
+        let minY = py
+        let maxX = px + HUB_W
+        let maxY = py + HUB_H
+        for (const m of absMods) {
+          const w = expandedModId === m.id ? EXPAND_W : m.w
+          const h = expandedModId === m.id ? EXPAND_H : m.h
+          minX = Math.min(minX, m.ax)
+          minY = Math.min(minY, m.ay)
+          maxX = Math.max(maxX, m.ax + w)
+          maxY = Math.max(maxY, m.ay + h)
         }
         const pad = 20
 
         pkgBoxes.push({
           id: basePkg.id,
           label: basePkg.label,
-          // Hub stays at package origin; hull drawn with negative offsets
           x: px,
           y: py,
-          hullX: minX - pad,
-          hullY: minY - pad,
+          // Hull in package-local space so it still wraps free-floating modules
+          hullX: minX - pad - px,
+          hullY: minY - pad - py,
           hullW: maxX - minX + pad * 2,
           hullH: maxY - minY + pad * 2,
           hubW: HUB_W,
           hubH: HUB_H,
           exploded: true,
-          locals,
+          locals: absMods.map((m) => ({
+            id: m.id,
+            lx: m.ax - px,
+            ly: m.ay - py,
+            w: m.w,
+            h: m.h,
+          })),
         })
 
-        for (const lm of locals) {
-          const absX = px + lm.lx
-          const absY = py + lm.ly
-          const expanded = expandedModId === lm.id
-          const w = expanded ? EXPAND_W : lm.w
-          const h = expanded ? EXPAND_H : lm.h
-          modPos.set(lm.id, {
-            x: absX,
-            y: absY,
+        for (const m of absMods) {
+          const expanded = expandedModId === m.id
+          const w = expanded ? EXPAND_W : m.w
+          const h = expanded ? EXPAND_H : m.h
+          modPos.set(m.id, {
+            x: m.ax,
+            y: m.ay,
             w,
             h,
-            cx: absX + w / 2,
-            cy: absY + h / 2,
+            cx: m.ax + w / 2,
+            cy: m.ay + h / 2,
             pkgId: basePkg.id,
             expanded,
+            independent: true,
           })
         }
       } else {
@@ -256,6 +196,7 @@ export default function Canvas({
             cy: absY + h / 2,
             pkgId: basePkg.id,
             expanded,
+            independent: false,
           })
         }
       }
@@ -440,6 +381,7 @@ export default function Canvas({
                 rx={14}
                 ry={14}
                 className={`pkg-rect ${box.exploded ? 'pkg-rect-exploded' : ''}`}
+                pointerEvents="none"
               />
               <g
                 data-drag="pkg"
@@ -527,7 +469,7 @@ export default function Canvas({
                   key={mod.id}
                   data-drag="mod"
                   data-id={mod.id}
-                  className={`class-box ${pos.expanded ? 'expanded' : ''}`}
+                  className={`class-box ${pos.expanded ? 'expanded' : ''} ${pos.independent ? 'independent' : ''}`}
                   transform={`translate(${pos.x},${pos.y})`}
                   style={{ cursor: 'grab', ...transitionStyle }}
                   onDoubleClick={(e) => {

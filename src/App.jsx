@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import { EDGE_KINDS, resolveView } from './ir.js'
+import { defaultLayout, explodedAbsPositions } from './layout.js'
 import Canvas from './Canvas.jsx'
 import Inspector from './Inspector.jsx'
 
@@ -19,6 +20,7 @@ export default function App() {
   const animTimer = useRef(null)
   const pkgOffsetsRef = useRef(pkgOffsets)
   const modOffsetsRef = useRef(modOffsets)
+  const explodedPkgsRef = useRef(explodedPkgs)
   const dragBase = useRef(null)
 
   useEffect(() => {
@@ -27,6 +29,9 @@ export default function App() {
   useEffect(() => {
     modOffsetsRef.current = modOffsets
   }, [modOffsets])
+  useEffect(() => {
+    explodedPkgsRef.current = explodedPkgs
+  }, [explodedPkgs])
 
   const view = useMemo(() => resolveView(selection), [selection])
 
@@ -59,10 +64,20 @@ export default function App() {
       return
     }
     if (explodedPkgs.size > 0) {
+      const explodedIds = [...explodedPkgs]
       setExplodedPkgs(new Set())
+      // Absolute per-module positions only apply while exploded — drop them on collapse
+      setModOffsets((prev) => {
+        const next = { ...prev }
+        for (const pkgId of explodedIds) {
+          const mods = view.packages.find((p) => p.id === pkgId)?.modules || []
+          for (const m of mods) delete next[m.id]
+        }
+        return next
+      })
       pulseAnimate()
     }
-  }, [expandedModId, explodedPkgs, pulseAnimate])
+  }, [expandedModId, explodedPkgs, view.packages, pulseAnimate])
 
   useEffect(() => {
     const onKey = (e) => {
@@ -100,20 +115,44 @@ export default function App() {
 
   const onToggleExplode = useCallback(
     (pkgId) => {
+      const pkg = view.packages.find((p) => p.id === pkgId)
+      const modIds = (pkg?.modules || []).map((m) => m.id)
+      const willExplode = !explodedPkgsRef.current.has(pkgId)
+
       setExplodedPkgs((prev) => {
         const next = new Set(prev)
         if (next.has(pkgId)) next.delete(pkgId)
         else next.add(pkgId)
         return next
       })
-      const modIds = (view.packages.find((p) => p.id === pkgId)?.modules || []).map(
-        (m) => m.id,
-      )
-      setModOffsets((prev) => {
-        const next = { ...prev }
-        for (const id of modIds) delete next[id]
-        return next
-      })
+
+      if (willExplode && pkg) {
+        // Bake absolute world positions so cards no longer inherit package transform
+        const base = defaultLayout(view.packages)
+        const basePkg = base.pkgBoxes.find((b) => b.id === pkgId)
+        if (basePkg) {
+          const abs = explodedAbsPositions(
+            pkg,
+            basePkg,
+            pkgOffsetsRef.current[pkgId],
+          )
+          setModOffsets((prev) => {
+            const next = { ...prev }
+            for (const id of modIds) {
+              if (abs[id]) next[id] = abs[id]
+              else delete next[id]
+            }
+            return next
+          })
+        }
+      } else {
+        // Collapse: drop absolute offsets; modules re-pack into package grid
+        setModOffsets((prev) => {
+          const next = { ...prev }
+          for (const id of modIds) delete next[id]
+          return next
+        })
+      }
       pulseAnimate()
     },
     [view.packages, pulseAnimate],
