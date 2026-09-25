@@ -13,6 +13,13 @@ npm install
 npm run dev
 ```
 
-Try: click a package to drill in (Esc / ← to go up), click a module for path/exports/metrics/edges, select **Split ADaM: core vs AE**, toggle declutter arrows and edge-kind chips.
+### Interaction
+
+- **Drag** package headers or module cards — positions persist for the session; dependency edges re-route live.
+- **Empty canvas** drag pans the view; hold **Alt** and drag anywhere to pan (so you never fight card drag).
+- **Double-click** a package (or the ⤢ control) to **explode** modules into a fan-out cluster; double-click / ⧉ / Esc to collapse.
+- **Double-click** a module to expand its detail card **in-canvas** (path, exports, metrics, edges); double-click / Esc to collapse.
+- Wheel zooms · **Reset layout** in the inspector (or canvas hint) restores defaults.
+- Inspector: Real diagram · Split ADaM proposal · All/Hide arrows · edge-kind chips · heat / violation legend.
 
 **Do not merge** — Demo Lab throwaway.

@@ -7,10 +7,13 @@ export default function Inspector({
   onToggleArrows,
   edgeKindFilter,
   onToggleEdgeKind,
-  focusPkgId,
+  explodedCount,
+  expandedModId,
   onGoUp,
+  onResetLayout,
 }) {
   const proposals = seedIr.proposals || []
+  const drilled = explodedCount > 0 || expandedModId
 
   return (
     <aside className="inspector">
@@ -19,11 +22,37 @@ export default function Inspector({
         Demo Lab — React/SVG viewer driven by a SAS IR seed (not Clojure).
       </p>
 
-      {focusPkgId && (
+      {drilled && (
         <button type="button" className="breadcrumb" onClick={onGoUp}>
-          ← {focusPkgId} (Esc)
+          ← collapse (Esc)
         </button>
       )}
+
+      <section className="inspector-section">
+        <h2>Interaction</h2>
+        <ul className="hint-list">
+          <li>
+            <strong>Drag</strong> a package header or module to move it — edges
+            re-route live.
+          </li>
+          <li>
+            <strong>Empty canvas</strong> drag pans · hold <kbd>Alt</kbd> and
+            drag anywhere to pan.
+          </li>
+          <li>
+            <strong>Double-click</strong> a package (or ⤢) to explode / collapse
+            modules.
+          </li>
+          <li>
+            <strong>Double-click</strong> a module to expand its detail card
+            in-canvas.
+          </li>
+          <li>Wheel zooms · Esc collapses.</li>
+        </ul>
+        <button type="button" className="reset-btn" onClick={onResetLayout}>
+          Reset layout
+        </button>
+      </section>
 
       <section className="inspector-section">
         <h2>Diagram</h2>
