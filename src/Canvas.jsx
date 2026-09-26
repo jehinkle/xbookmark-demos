@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
-import { edgesForModule, heatFill, isViolation } from './ir.js'
+import { heatFill, isViolation } from './ir.js'
 import {
   PKG_PAD,
   HEADER_H,
@@ -11,8 +11,6 @@ import {
 
 const EXPLODE_BTN = 22
 const DRAG_THRESHOLD = 4
-const EXPAND_W = 260
-const EXPAND_H = 210
 
 function edgePath(a, b) {
   const dx = b.cx - a.cx
@@ -64,8 +62,7 @@ export default function Canvas({
   edgeKindFilter,
   explodedPkgs,
   onToggleExplode,
-  expandedModId,
-  onToggleExpandMod,
+  onSelectModule,
   pkgOffsets,
   modOffsets,
   onMovePackage,
@@ -108,12 +105,10 @@ export default function Canvas({
         let maxX = px + HUB_W
         let maxY = py + HUB_H
         for (const m of absMods) {
-          const w = expandedModId === m.id ? EXPAND_W : m.w
-          const h = expandedModId === m.id ? EXPAND_H : m.h
           minX = Math.min(minX, m.ax)
           minY = Math.min(minY, m.ay)
-          maxX = Math.max(maxX, m.ax + w)
-          maxY = Math.max(maxY, m.ay + h)
+          maxX = Math.max(maxX, m.ax + m.w)
+          maxY = Math.max(maxY, m.ay + m.h)
         }
         const pad = 20
 
@@ -140,18 +135,14 @@ export default function Canvas({
         })
 
         for (const m of absMods) {
-          const expanded = expandedModId === m.id
-          const w = expanded ? EXPAND_W : m.w
-          const h = expanded ? EXPAND_H : m.h
           modPos.set(m.id, {
             x: m.ax,
             y: m.ay,
-            w,
-            h,
-            cx: m.ax + w / 2,
-            cy: m.ay + h / 2,
+            w: m.w,
+            h: m.h,
+            cx: m.ax + m.w / 2,
+            cy: m.ay + m.h / 2,
             pkgId: basePkg.id,
-            expanded,
             independent: true,
           })
         }
@@ -163,10 +154,8 @@ export default function Canvas({
         let maxX = basePkg.w
         let maxY = basePkg.h
         for (const lm of locals) {
-          const w = expandedModId === lm.id ? EXPAND_W : lm.w
-          const h = expandedModId === lm.id ? EXPAND_H : lm.h
-          maxX = Math.max(maxX, lm.lx + w + PKG_PAD)
-          maxY = Math.max(maxY, lm.ly + h + PKG_PAD)
+          maxX = Math.max(maxX, lm.lx + lm.w + PKG_PAD)
+          maxY = Math.max(maxY, lm.ly + lm.h + PKG_PAD)
         }
         pkgBoxes.push({
           id: basePkg.id,
@@ -185,18 +174,14 @@ export default function Canvas({
         for (const lm of locals) {
           const absX = px + lm.lx
           const absY = py + lm.ly
-          const expanded = expandedModId === lm.id
-          const w = expanded ? EXPAND_W : lm.w
-          const h = expanded ? EXPAND_H : lm.h
           modPos.set(lm.id, {
             x: absX,
             y: absY,
-            w,
-            h,
-            cx: absX + w / 2,
-            cy: absY + h / 2,
+            w: lm.w,
+            h: lm.h,
+            cx: absX + lm.w / 2,
+            cy: absY + lm.h / 2,
             pkgId: basePkg.id,
-            expanded,
             independent: false,
           })
         }
@@ -204,7 +189,7 @@ export default function Canvas({
     }
 
     return { modPos, pkgBoxes }
-  }, [base, view.packages, pkgOffsets, modOffsets, explodedPkgs, expandedModId])
+  }, [base, view.packages, pkgOffsets, modOffsets, explodedPkgs])
 
   const edges = useMemo(() => {
     if (hideArrows) return []
@@ -350,10 +335,14 @@ export default function Canvas({
         }
       }
       if (!hit?.id) return
-      if (hit.kind === 'mod') onToggleExpandMod(hit.id)
-      else if (hit.kind === 'pkg') onToggleExplode(hit.id)
+      if (hit.kind === 'mod') {
+        const mod = view.moduleMap.get(hit.id)
+        if (mod) onSelectModule(mod)
+      } else if (hit.kind === 'pkg') {
+        onToggleExplode(hit.id)
+      }
     },
-    [onToggleExpandMod, onToggleExplode],
+    [onSelectModule, onToggleExplode, view.moduleMap],
   )
 
   const transitionStyle = animating
@@ -480,21 +469,14 @@ export default function Canvas({
               if (!pos) return null
               const heat = mod.metrics?.heat ?? 0.15
               const fill = heatFill(heat)
-              const exports = (mod.exports || []).slice(0, pos.expanded ? 6 : 2)
-              const outbound = pos.expanded
-                ? edgesForModule(mod.id, view.edges, 'out').slice(0, 4)
-                : []
-              const inbound = pos.expanded
-                ? edgesForModule(mod.id, view.edges, 'in').slice(0, 3)
-                : []
-              const outBlock = Math.max(outbound.length, 1)
+              const exports = (mod.exports || []).slice(0, 2)
 
               return (
                 <g
                   key={mod.id}
                   data-drag="mod"
                   data-id={mod.id}
-                  className={`class-box ${pos.expanded ? 'expanded' : ''} ${pos.independent ? 'independent' : ''}`}
+                  className={`class-box ${pos.independent ? 'independent' : ''}`}
                   transform={`translate(${pos.x},${pos.y})`}
                   style={{ cursor: 'grab', ...transitionStyle }}
                 >
@@ -504,8 +486,8 @@ export default function Canvas({
                     rx={6}
                     ry={6}
                     fill={fill}
-                    stroke={pos.expanded ? '#f8fafc' : '#0f172a'}
-                    strokeWidth={pos.expanded ? 2 : 1.2}
+                    stroke="#0f172a"
+                    strokeWidth={1.2}
                     opacity={0.94}
                   />
                   <rect
@@ -536,93 +518,11 @@ export default function Canvas({
                     {mod.metrics?.loc != null ? ` · ${mod.metrics.loc} loc` : ''}
                     {mod.metrics?.heat != null ? ` · heat ${mod.metrics.heat}` : ''}
                   </text>
-                  {!pos.expanded &&
-                    exports.map((ex, ei) => (
-                      <text key={ex} x={8} y={52 + ei * 12} className="class-member">
-                        → {ex}
-                      </text>
-                    ))}
-                  {pos.expanded && (
-                    <g className="mod-detail">
-                      <text x={8} y={52} className="class-member dim">
-                        {mod.path}
-                      </text>
-                      {exports.length > 0 && (
-                        <text x={8} y={68} className="class-member">
-                          exports: {exports.join(', ')}
-                        </text>
-                      )}
-                      {mod.metrics && (
-                        <text x={8} y={84} className="class-member">
-                          {[
-                            mod.metrics.loc != null && `loc ${mod.metrics.loc}`,
-                            mod.metrics.macroCallCount != null &&
-                              `macros ${mod.metrics.macroCallCount}`,
-                            mod.metrics.hasQcTwin != null &&
-                              `qc ${mod.metrics.hasQcTwin ? 'yes' : 'no'}`,
-                          ]
-                            .filter(Boolean)
-                            .join(' · ')}
-                        </text>
-                      )}
-                      <text x={8} y={104} className="class-member section">
-                        out →
-                      </text>
-                      {outbound.length === 0 ? (
-                        <text x={16} y={118} className="class-member dim">
-                          (none)
-                        </text>
-                      ) : (
-                        outbound.map((ed, ei) => {
-                          const other = view.moduleMap.get(ed.to)
-                          return (
-                            <text
-                              key={`o-${ed.to}-${ei}`}
-                              x={16}
-                              y={118 + ei * 13}
-                              className="class-member"
-                            >
-                              {other?.name || ed.to} · {ed.kind}
-                              {ed.strength === 'weak' ? ' ~' : ''}
-                            </text>
-                          )
-                        })
-                      )}
-                      <text
-                        x={8}
-                        y={118 + outBlock * 13 + 10}
-                        className="class-member section"
-                      >
-                        ← in
-                      </text>
-                      {inbound.length === 0 ? (
-                        <text
-                          x={16}
-                          y={118 + outBlock * 13 + 24}
-                          className="class-member dim"
-                        >
-                          (none)
-                        </text>
-                      ) : (
-                        inbound.map((ed, ei) => {
-                          const other = view.moduleMap.get(ed.from)
-                          return (
-                            <text
-                              key={`i-${ed.from}-${ei}`}
-                              x={16}
-                              y={118 + outBlock * 13 + 24 + ei * 13}
-                              className="class-member"
-                            >
-                              {other?.name || ed.from} · {ed.kind}
-                            </text>
-                          )
-                        })
-                      )}
-                      <text x={8} y={pos.h - 10} className="class-member dim">
-                        dbl-click to collapse
-                      </text>
-                    </g>
-                  )}
+                  {exports.map((ex, ei) => (
+                    <text key={ex} x={8} y={52 + ei * 12} className="class-member">
+                      → {ex}
+                    </text>
+                  ))}
                 </g>
               )
             }),
@@ -631,7 +531,7 @@ export default function Canvas({
       </svg>
       <div className="canvas-hint">
         drag cards · empty / Alt-drag pans · wheel zoom · dbl-click / ⤢ explode ·
-        dbl-click module expands
+        dbl-click module opens detail
         {' · '}
         <button type="button" className="hint-reset" onClick={onResetLayout}>
           reset layout

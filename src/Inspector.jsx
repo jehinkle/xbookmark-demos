@@ -8,12 +8,12 @@ export default function Inspector({
   edgeKindFilter,
   onToggleEdgeKind,
   explodedCount,
-  expandedModId,
+  selectedModule,
   onGoUp,
   onResetLayout,
 }) {
   const proposals = seedIr.proposals || []
-  const drilled = explodedCount > 0 || expandedModId
+  const drilled = explodedCount > 0 || selectedModule
 
   return (
     <aside className="inspector">
@@ -44,8 +44,8 @@ export default function Inspector({
             modules.
           </li>
           <li>
-            <strong>Double-click</strong> a module to expand its detail card
-            in-canvas.
+            <strong>Double-click</strong> a module to open the detail window
+            (path, metrics, edges, evidence).
           </li>
           <li>Wheel zooms · Esc collapses.</li>
         </ul>

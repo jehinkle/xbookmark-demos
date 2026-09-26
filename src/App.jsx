@@ -4,6 +4,7 @@ import { EDGE_KINDS, resolveView } from './ir.js'
 import { defaultLayout, explodedAbsPositions } from './layout.js'
 import Canvas from './Canvas.jsx'
 import Inspector from './Inspector.jsx'
+import ModuleCard from './ModuleCard.jsx'
 
 const emptyOffsets = () => ({})
 
@@ -12,7 +13,7 @@ export default function App() {
   const [hideArrows, setHideArrows] = useState(false)
   const [edgeKindFilter, setEdgeKindFilter] = useState(() => new Set(EDGE_KINDS))
   const [explodedPkgs, setExplodedPkgs] = useState(() => new Set())
-  const [expandedModId, setExpandedModId] = useState(null)
+  const [selectedModule, setSelectedModule] = useState(null)
   const [pkgOffsets, setPkgOffsets] = useState(emptyOffsets)
   const [modOffsets, setModOffsets] = useState(emptyOffsets)
   const [animating, setAnimating] = useState(false)
@@ -52,15 +53,14 @@ export default function App() {
     setPkgOffsets(emptyOffsets())
     setModOffsets(emptyOffsets())
     setExplodedPkgs(new Set())
-    setExpandedModId(null)
+    setSelectedModule(null)
     dragBase.current = null
     pulseAnimate()
   }, [pulseAnimate])
 
   const goUp = useCallback(() => {
-    if (expandedModId) {
-      setExpandedModId(null)
-      pulseAnimate()
+    if (selectedModule) {
+      setSelectedModule(null)
       return
     }
     if (explodedPkgs.size > 0) {
@@ -77,7 +77,7 @@ export default function App() {
       })
       pulseAnimate()
     }
-  }, [expandedModId, explodedPkgs, view.packages, pulseAnimate])
+  }, [selectedModule, explodedPkgs, view.packages, pulseAnimate])
 
   useEffect(() => {
     const onKey = (e) => {
@@ -92,7 +92,7 @@ export default function App() {
 
   const onSelectView = (id) => {
     setSelection(id)
-    setExpandedModId(null)
+    setSelectedModule(null)
     setExplodedPkgs(new Set())
     setPkgOffsets(emptyOffsets())
     setModOffsets(emptyOffsets())
@@ -158,13 +158,9 @@ export default function App() {
     [view.packages, pulseAnimate],
   )
 
-  const onToggleExpandMod = useCallback(
-    (modId) => {
-      setExpandedModId((prev) => (prev === modId ? null : modId))
-      pulseAnimate()
-    },
-    [pulseAnimate],
-  )
+  const onSelectModule = useCallback((mod) => {
+    setSelectedModule(mod)
+  }, [])
 
   const onMovePackage = useCallback((pkgId, dx, dy, opts = {}) => {
     if (opts.phase === 'move') {
@@ -222,8 +218,7 @@ export default function App() {
           edgeKindFilter={edgeKindFilter}
           explodedPkgs={explodedPkgs}
           onToggleExplode={onToggleExplode}
-          expandedModId={expandedModId}
-          onToggleExpandMod={onToggleExpandMod}
+          onSelectModule={onSelectModule}
           pkgOffsets={pkgOffsets}
           modOffsets={modOffsets}
           onMovePackage={onMovePackage}
@@ -240,9 +235,14 @@ export default function App() {
         edgeKindFilter={edgeKindFilter}
         onToggleEdgeKind={onToggleEdgeKind}
         explodedCount={explodedPkgs.size}
-        expandedModId={expandedModId}
+        selectedModule={selectedModule}
         onGoUp={goUp}
         onResetLayout={resetLayout}
+      />
+      <ModuleCard
+        mod={selectedModule}
+        view={view}
+        onClose={() => setSelectedModule(null)}
       />
     </div>
   )

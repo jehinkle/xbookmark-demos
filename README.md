@@ -19,7 +19,7 @@ npm run dev
 - **Exploded** packages: each module card has its **own** absolute drag position — dragging one does not move siblings or the package hub; hub drag moves only the shell.
 - **Empty canvas** drag pans the view; hold **Alt** and drag anywhere to pan (so you never fight card drag).
 - **Double-click** a package (or the ⤢ control) to **explode** modules into a fan-out cluster; double-click / ⧉ / Esc to collapse.
-- **Double-click** a module to expand its detail card **in-canvas** (path, exports, metrics, edges); double-click / Esc to collapse.
+- **Double-click** a module to open the **ModuleCard** detail window (path, exports, metrics, inbound/outbound edges + evidence); Esc / ✕ / backdrop to close.
 - Wheel zooms · **Reset layout** in the inspector (or canvas hint) restores defaults.
 - Inspector: Real diagram · Split ADaM proposal · All/Hide arrows · edge-kind chips · heat / violation legend.
 
