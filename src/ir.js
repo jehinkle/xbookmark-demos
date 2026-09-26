@@ -82,18 +82,24 @@ function applyRepackage(packages, modules, repackage) {
   return { packages: nextPkgs, modules: nextModules }
 }
 
-/** Resolve real diagram or a proposal into view model */
-export function resolveView(selection) {
-  const basePkgs = seed.packages
-  const baseMods = seed.modules
-  const metrics = seed.metrics || {}
-  const edges = seed.edges || []
-  const proposals = seed.proposals || []
+/** Deep-clone the seed IR for in-memory Demo Lab edits. */
+export function cloneIr(ir = seed) {
+  return structuredClone(ir)
+}
+
+/** Resolve real diagram or a proposal into view model.
+ *  `ir` defaults to the static seed; pass a cloned/edited IR for live edits. */
+export function resolveView(selection, ir = seed) {
+  const basePkgs = ir.packages
+  const baseMods = ir.modules
+  const metrics = ir.metrics || {}
+  const edges = ir.edges || []
+  const proposals = ir.proposals || []
 
   let packages = basePkgs
   let modules = baseMods
   let kind = 'real'
-  let title = seed.title
+  let title = ir.title
   let proposal = null
 
   if (selection && selection !== 'real') {
@@ -125,7 +131,7 @@ export function resolveView(selection) {
     packages: packagesWithModules,
     modules,
     edges,
-    foreign: seed.foreign || [],
+    foreign: ir.foreign || [],
     proposals,
     metrics,
     levelByPkg,

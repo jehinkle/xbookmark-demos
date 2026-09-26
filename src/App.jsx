@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
-import { EDGE_KINDS, resolveView } from './ir.js'
+import { EDGE_KINDS, cloneIr, resolveView } from './ir.js'
 import { defaultLayout, explodedAbsPositions } from './layout.js'
 import Canvas from './Canvas.jsx'
 import Inspector from './Inspector.jsx'
@@ -10,6 +10,7 @@ const emptyOffsets = () => ({})
 
 export default function App() {
   const [selection, setSelection] = useState('real')
+  const [ir, setIr] = useState(() => cloneIr())
   const [hideArrows, setHideArrows] = useState(false)
   const [edgeKindFilter, setEdgeKindFilter] = useState(() => new Set(EDGE_KINDS))
   const [explodedPkgs, setExplodedPkgs] = useState(() => new Set())
@@ -34,7 +35,7 @@ export default function App() {
     explodedPkgsRef.current = explodedPkgs
   }, [explodedPkgs])
 
-  const view = useMemo(() => resolveView(selection), [selection])
+  const view = useMemo(() => resolveView(selection, ir), [selection, ir])
 
   const pulseAnimate = useCallback(() => {
     setAnimating(true)
@@ -208,6 +209,56 @@ export default function App() {
     }
   }, [])
 
+  const onMoveModulePackage = useCallback(
+    (modId, newPkgId) => {
+      setIr((prev) => ({
+        ...prev,
+        modules: prev.modules.map((m) =>
+          m.id === modId ? { ...m, package: newPkgId } : m,
+        ),
+      }))
+      setSelectedModule((cur) =>
+        cur?.id === modId ? { ...cur, package: newPkgId } : cur,
+      )
+      // Drop absolute offset so the card re-homes with its new package
+      setModOffsets((prev) => {
+        if (!(modId in prev)) return prev
+        const next = { ...prev }
+        delete next[modId]
+        return next
+      })
+      setViewEpoch((n) => n + 1)
+      pulseAnimate()
+    },
+    [pulseAnimate],
+  )
+
+  const onRemoveEdge = useCallback((index) => {
+    setIr((prev) => ({
+      ...prev,
+      edges: prev.edges.filter((_, i) => i !== index),
+    }))
+  }, [])
+
+  const onAddEdge = useCallback((edge) => {
+    setIr((prev) => ({
+      ...prev,
+      edges: [...prev.edges, edge],
+    }))
+  }, [])
+
+  const onResetIr = useCallback(() => {
+    setIr(cloneIr())
+    setSelection('real')
+    setSelectedModule(null)
+    setExplodedPkgs(new Set())
+    setPkgOffsets(emptyOffsets())
+    setModOffsets(emptyOffsets())
+    dragBase.current = null
+    setViewEpoch((n) => n + 1)
+    pulseAnimate()
+  }, [pulseAnimate])
+
   return (
     <div className="app-shell">
       <div className="canvas-pane">
@@ -238,6 +289,11 @@ export default function App() {
         selectedModule={selectedModule}
         onGoUp={goUp}
         onResetLayout={resetLayout}
+        ir={ir}
+        onMoveModulePackage={onMoveModulePackage}
+        onAddEdge={onAddEdge}
+        onRemoveEdge={onRemoveEdge}
+        onResetIr={onResetIr}
       />
       <ModuleCard
         mod={selectedModule}

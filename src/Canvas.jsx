@@ -93,6 +93,8 @@ export default function Canvas({
       if (exploded) {
         const fan = fanLocals(pkg.modules || [])
         // Exploded: modOffsets are absolute world top-left (independent of package hub).
+        // Hub shell size/position is fixed — do NOT derive hull from module AABBs
+        // (that caused the package to stretch when dragging modules right/down).
         const absMods = fan.map((lm) => {
           const mo = modOffsets[lm.id]
           const ax = mo ? mo.x : px + lm.lx
@@ -100,28 +102,16 @@ export default function Canvas({
           return { ...lm, ax, ay }
         })
 
-        let minX = px
-        let minY = py
-        let maxX = px + HUB_W
-        let maxY = py + HUB_H
-        for (const m of absMods) {
-          minX = Math.min(minX, m.ax)
-          minY = Math.min(minY, m.ay)
-          maxX = Math.max(maxX, m.ax + m.w)
-          maxY = Math.max(maxY, m.ay + m.h)
-        }
-        const pad = 20
-
         pkgBoxes.push({
           id: basePkg.id,
           label: basePkg.label,
           x: px,
           y: py,
-          // Hull in package-local space so it still wraps free-floating modules
-          hullX: minX - pad - px,
-          hullY: minY - pad - py,
-          hullW: maxX - minX + pad * 2,
-          hullH: maxY - minY + pad * 2,
+          // Hub-only geometry: shell stays fixed while modules float freely
+          hullX: 0,
+          hullY: 0,
+          hullW: HUB_W,
+          hullH: HUB_H,
           hubW: HUB_W,
           hubH: HUB_H,
           exploded: true,

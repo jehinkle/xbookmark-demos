@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import { EDGE_KINDS, seedIr } from './ir.js'
 
 export default function Inspector({
@@ -11,9 +12,53 @@ export default function Inspector({
   selectedModule,
   onGoUp,
   onResetLayout,
+  ir,
+  onMoveModulePackage,
+  onAddEdge,
+  onRemoveEdge,
+  onResetIr,
 }) {
-  const proposals = seedIr.proposals || []
+  const proposals = (ir || seedIr).proposals || []
   const drilled = explodedCount > 0 || selectedModule
+
+  const [edgeFrom, setEdgeFrom] = useState('')
+  const [edgeTo, setEdgeTo] = useState('')
+  const [edgeKind, setEdgeKind] = useState(EDGE_KINDS[0])
+  const [edgeStrength, setEdgeStrength] = useState('strong')
+
+  // Edit the underlying seed IR (not the proposal overlay)
+  const basePkgs = ir?.packages || []
+  const baseMods = ir?.modules || []
+  const packages = useMemo(
+    () =>
+      basePkgs.map((p) => ({
+        ...p,
+        modules: baseMods.filter((m) => m.package === p.id),
+      })),
+    [basePkgs, baseMods],
+  )
+  const allModules = useMemo(
+    () => baseMods.map((m) => ({ id: m.id, name: m.name, package: m.package })),
+    [baseMods],
+  )
+  const edges = ir?.edges || []
+  const moduleName = (id) => {
+    const m = baseMods.find((x) => x.id === id)
+    return m?.name || id
+  }
+
+  const submitEdge = (e) => {
+    e.preventDefault()
+    if (!edgeFrom || !edgeTo || edgeFrom === edgeTo) return
+    onAddEdge({
+      from: edgeFrom,
+      to: edgeTo,
+      kind: edgeKind,
+      strength: edgeStrength,
+    })
+    setEdgeFrom('')
+    setEdgeTo('')
+  }
 
   return (
     <aside className="inspector">
@@ -34,6 +79,10 @@ export default function Inspector({
           <li>
             <strong>Drag</strong> a package header or module to move it — edges
             re-route live.
+          </li>
+          <li>
+            Exploded modules float freely in <strong>all directions</strong>; the
+            package hub size stays fixed.
           </li>
           <li>
             <strong>Empty canvas</strong> drag pans · hold <kbd>Alt</kbd> and
@@ -61,7 +110,7 @@ export default function Inspector({
           className={`list-row ${selection === 'real' ? 'active' : ''}`}
           onClick={() => onSelectView('real')}
         >
-          <span className="row-title">{seedIr.title}</span>
+          <span className="row-title">{(ir || seedIr).title}</span>
           <span className="row-meta">real · seed IR</span>
         </button>
       </section>
@@ -79,6 +128,145 @@ export default function Inspector({
             <span className="row-meta">what-if · not in code</span>
           </button>
         ))}
+      </section>
+
+      <section className="inspector-section ir-editor">
+        <h2>IR relationships</h2>
+        <p className="tiny ir-editor-note">
+          In-memory edit of the loaded seed (membership + edges). Demo-sized —
+          not persisted.
+        </p>
+
+        <h3 className="ir-subhead">Packages → modules</h3>
+        <ul className="ir-pkg-list">
+          {packages.map((pkg) => (
+            <li key={pkg.id} className="ir-pkg">
+              <div className="ir-pkg-label">
+                {pkg.label}{' '}
+                <span className="row-meta">L{pkg.level}</span>
+              </div>
+              <ul className="ir-mod-list">
+                {(pkg.modules || []).length === 0 && (
+                  <li className="ir-empty">— empty —</li>
+                )}
+                {(pkg.modules || []).map((mod) => (
+                  <li key={mod.id} className="ir-mod-row">
+                    <code className="ir-mod-name" title={mod.id}>
+                      {mod.name}
+                    </code>
+                    <select
+                      className="ir-select"
+                      aria-label={`Move ${mod.name} to package`}
+                      value={pkg.id}
+                      onChange={(e) => onMoveModulePackage(mod.id, e.target.value)}
+                    >
+                      {packages.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.label}
+                        </option>
+                      ))}
+                    </select>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
+
+        <h3 className="ir-subhead">Edges ({edges.length})</h3>
+        <ul className="ir-edge-list">
+          {edges.map((edge, i) => {
+            return (
+              <li key={`${edge.from}-${edge.to}-${edge.kind}-${i}`} className="ir-edge-row">
+                <div className="ir-edge-text">
+                  <code>{moduleName(edge.from)}</code>
+                  <span className="ir-arrow">→</span>
+                  <code>{moduleName(edge.to)}</code>
+                  <span className="edge-kind">
+                    {edge.kind}
+                    {edge.strength === 'weak' ? ' · weak' : ''}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="ir-remove"
+                  aria-label="Remove edge"
+                  onClick={() => onRemoveEdge(i)}
+                >
+                  ✕
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+
+        <form className="ir-add-edge" onSubmit={submitEdge}>
+          <h3 className="ir-subhead">Add edge</h3>
+          <label className="ir-field">
+            <span>From</span>
+            <select
+              className="ir-select"
+              value={edgeFrom}
+              onChange={(e) => setEdgeFrom(e.target.value)}
+              required
+            >
+              <option value="">—</option>
+              {allModules.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="ir-field">
+            <span>To</span>
+            <select
+              className="ir-select"
+              value={edgeTo}
+              onChange={(e) => setEdgeTo(e.target.value)}
+              required
+            >
+              <option value="">—</option>
+              {allModules.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="ir-field">
+            <span>Kind</span>
+            <select
+              className="ir-select"
+              value={edgeKind}
+              onChange={(e) => setEdgeKind(e.target.value)}
+            >
+              {EDGE_KINDS.map((k) => (
+                <option key={k} value={k}>
+                  {k}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="ir-field">
+            <span>Strength</span>
+            <select
+              className="ir-select"
+              value={edgeStrength}
+              onChange={(e) => setEdgeStrength(e.target.value)}
+            >
+              <option value="strong">strong</option>
+              <option value="weak">weak</option>
+            </select>
+          </label>
+          <button type="submit" className="reset-btn ir-add-btn">
+            Add edge
+          </button>
+        </form>
+
+        <button type="button" className="reset-btn ir-reset-seed" onClick={onResetIr}>
+          Reset seed IR
+        </button>
       </section>
 
       <section className="inspector-section">

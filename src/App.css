@@ -528,3 +528,173 @@ body {
 .class-box:active {
   cursor: grabbing;
 }
+
+
+/* —— IR relationship editor (inspector) —— */
+
+.ir-editor-note {
+  margin: 0 0 10px;
+}
+
+.ir-subhead {
+  margin: 10px 0 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.ir-pkg-list,
+.ir-mod-list,
+.ir-edge-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ir-pkg {
+  margin-bottom: 8px;
+  padding: 8px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+}
+
+.ir-pkg-label {
+  font-weight: 600;
+  font-size: 12px;
+  color: #e2e8f0;
+  margin-bottom: 6px;
+}
+
+.ir-mod-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ir-mod-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: space-between;
+}
+
+.ir-mod-name {
+  font-size: 11px;
+  color: #cbd5e1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 110px;
+  background: transparent;
+  padding: 0;
+}
+
+.ir-empty {
+  font-size: 11px;
+  color: #64748b;
+  font-style: italic;
+}
+
+.ir-select {
+  flex: 1;
+  min-width: 0;
+  max-width: 120px;
+  background: #020617;
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  border-radius: 6px;
+  padding: 3px 6px;
+  font-size: 11px;
+}
+
+.ir-edge-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 180px;
+  overflow-y: auto;
+  margin-bottom: 4px;
+}
+
+.ir-edge-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+}
+
+.ir-edge-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 11px;
+}
+
+.ir-edge-text code {
+  background: transparent;
+  color: #e2e8f0;
+  font-size: 11px;
+  padding: 0;
+}
+
+.ir-arrow {
+  color: #64748b;
+}
+
+.ir-remove {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+  padding: 0;
+}
+
+.ir-remove:hover {
+  border-color: #ef4444;
+  color: #fca5a5;
+}
+
+.ir-add-edge {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.ir-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.ir-field .ir-select {
+  max-width: 160px;
+  flex: 1;
+}
+
+.ir-add-btn {
+  margin-top: 2px;
+}
+
+.ir-reset-seed {
+  margin-top: 8px;
+  border-color: #475569;
+}
