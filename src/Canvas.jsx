@@ -77,6 +77,7 @@ export default function Canvas({
   const [zoom, setZoom] = useState(0.92)
   const svgRef = useRef(null)
   const drag = useRef(null)
+  const lastHit = useRef(null)
 
   const base = useMemo(() => defaultLayout(view.packages), [view.packages])
 
@@ -244,6 +245,7 @@ export default function Canvas({
       const altPan = e.altKey
 
       if (altPan || !interactive) {
+        lastHit.current = null
         drag.current = {
           kind: 'pan',
           px: e.clientX,
@@ -259,6 +261,9 @@ export default function Canvas({
       const id = interactive.getAttribute('data-id')
       const world = clientToWorld(svg, e.clientX, e.clientY, pan, zoom)
 
+      // Remember hit target: setPointerCapture on the svg retargets native
+      // dblclick to the svg, so card-level onDoubleClick never fires.
+      lastHit.current = { kind, id }
       drag.current = {
         kind,
         id,
@@ -310,6 +315,7 @@ export default function Canvas({
       }
 
       if (d.moved) {
+        lastHit.current = null
         const svg = svgRef.current
         if (svg) {
           const world = clientToWorld(svg, e.clientX, e.clientY, pan, zoom)
@@ -327,6 +333,29 @@ export default function Canvas({
     [pan, zoom, onMovePackage, onMoveModule, endDrag],
   )
 
+  const onCanvasDoubleClick = useCallback(
+    (e) => {
+      e.preventDefault()
+      // Prefer last pointer-down hit (reliable under pointer capture). Fall back
+      // to elementFromPoint for any path that skipped our pointerdown.
+      let hit = lastHit.current
+      if (!hit) {
+        const el = document.elementFromPoint(e.clientX, e.clientY)
+        const node = el?.closest?.('[data-drag]')
+        if (node) {
+          hit = {
+            kind: node.getAttribute('data-drag'),
+            id: node.getAttribute('data-id'),
+          }
+        }
+      }
+      if (!hit?.id) return
+      if (hit.kind === 'mod') onToggleExpandMod(hit.id)
+      else if (hit.kind === 'pkg') onToggleExplode(hit.id)
+    },
+    [onToggleExpandMod, onToggleExplode],
+  )
+
   const transitionStyle = animating
     ? { transition: 'transform 0.32s ease' }
     : undefined
@@ -342,6 +371,7 @@ export default function Canvas({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
+        onDoubleClick={onCanvasDoubleClick}
       >
         <defs>
           <marker
@@ -387,11 +417,6 @@ export default function Canvas({
                 data-drag="pkg"
                 data-id={box.id}
                 className="pkg-handle"
-                onDoubleClick={(e) => {
-                  e.stopPropagation()
-                  e.preventDefault()
-                  onToggleExplode(box.id)
-                }}
               >
                 <rect
                   width={box.hubW}
@@ -472,11 +497,6 @@ export default function Canvas({
                   className={`class-box ${pos.expanded ? 'expanded' : ''} ${pos.independent ? 'independent' : ''}`}
                   transform={`translate(${pos.x},${pos.y})`}
                   style={{ cursor: 'grab', ...transitionStyle }}
-                  onDoubleClick={(e) => {
-                    e.stopPropagation()
-                    e.preventDefault()
-                    onToggleExpandMod(mod.id)
-                  }}
                 >
                   <rect
                     width={pos.w}
