@@ -16,7 +16,8 @@ npm run dev
 ### Interaction
 
 - **Drag** package headers or module cards — positions persist for the session; dependency edges re-route live.
-- **Exploded** packages: each module card has its **own** absolute drag position — dragging one does not move siblings or the package hub; hub drag moves only the shell. The package shell stays **fixed size** (hub-only); modules may sit outside it in any direction without stretching the hull.
+- **Exploded** packages: each module card has its **own** absolute drag position — dragging one does not move siblings; hub drag moves the hub **and** its modules together. The dashed package shell is an **AABB hull** recomputed from hub + child module positions in all directions, so modules never visually escape the package card.
+- **Packed** packages: dragging a module also grows/moves the package bounds in all directions so the card always wraps its modules.
 - **Empty canvas** drag pans the view; hold **Alt** and drag anywhere to pan (so you never fight card drag).
 - **Double-click** a package (or the ⤢ control) to **explode** modules into a fan-out cluster; double-click / ⧉ / Esc to collapse.
 - **Double-click** a module to open the **ModuleCard** detail window (path, exports, metrics, inbound/outbound edges + evidence); Esc / ✕ / backdrop to close.

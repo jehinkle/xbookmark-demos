@@ -163,28 +163,51 @@ export default function App() {
     setSelectedModule(mod)
   }, [])
 
-  const onMovePackage = useCallback((pkgId, dx, dy, opts = {}) => {
-    if (opts.phase === 'move') {
-      if (!dragBase.current || dragBase.current.kind !== 'pkg' || dragBase.current.id !== pkgId) {
-        const cur = pkgOffsetsRef.current[pkgId] || { x: 0, y: 0 }
-        dragBase.current = { kind: 'pkg', id: pkgId, x: cur.x, y: cur.y }
-      }
-      const base = dragBase.current
-      setPkgOffsets((prev) => ({
-        ...prev,
-        [pkgId]: { x: base.x + dx, y: base.y + dy },
-      }))
-    } else if (opts.phase === 'end') {
-      if (dragBase.current?.kind === 'pkg' && dragBase.current.id === pkgId) {
-        const base = dragBase.current
+  const onMovePackage = useCallback(
+    (pkgId, dx, dy, opts = {}) => {
+      // Hub drag: move package origin. If exploded, also translate child modules'
+      // absolute positions by the same delta so the wrapping hull stays coherent
+      // (individual module drag remains independent — siblings do not move).
+      const apply = (deltaX, deltaY, fromBase) => {
+        const base = fromBase
         setPkgOffsets((prev) => ({
           ...prev,
-          [pkgId]: { x: base.x + dx, y: base.y + dy },
+          [pkgId]: { x: base.x + deltaX, y: base.y + deltaY },
         }))
+        if (explodedPkgsRef.current.has(pkgId) && base.modBases) {
+          setModOffsets((prev) => {
+            const next = { ...prev }
+            for (const [modId, mb] of Object.entries(base.modBases)) {
+              next[modId] = { x: mb.x + deltaX, y: mb.y + deltaY }
+            }
+            return next
+          })
+        }
       }
-      dragBase.current = null
-    }
-  }, [])
+
+      if (opts.phase === 'move') {
+        if (!dragBase.current || dragBase.current.kind !== 'pkg' || dragBase.current.id !== pkgId) {
+          const cur = pkgOffsetsRef.current[pkgId] || { x: 0, y: 0 }
+          let modBases = null
+          if (explodedPkgsRef.current.has(pkgId)) {
+            const mods = view.packages.find((p) => p.id === pkgId)?.modules || []
+            modBases = {}
+            for (const m of mods) {
+              modBases[m.id] = modOffsetsRef.current[m.id] || { x: 0, y: 0 }
+            }
+          }
+          dragBase.current = { kind: 'pkg', id: pkgId, x: cur.x, y: cur.y, modBases }
+        }
+        apply(dx, dy, dragBase.current)
+      } else if (opts.phase === 'end') {
+        if (dragBase.current?.kind === 'pkg' && dragBase.current.id === pkgId) {
+          apply(dx, dy, dragBase.current)
+        }
+        dragBase.current = null
+      }
+    },
+    [view.packages],
+  )
 
   const onMoveModule = useCallback((modId, dx, dy, opts = {}) => {
     if (opts.phase === 'move') {
