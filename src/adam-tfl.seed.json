@@ -1,0 +1,191 @@
+{
+  "title": "Study XYZ — fake ADAM / TFL tree",
+  "prefix": "xyz",
+  "direction": "tb",
+  "policyRef": "policy/xyz.policy.json",
+  "packages": [
+    { "id": "macros", "label": "Macros", "level": 0, "path": "macros" },
+    { "id": "adam", "label": "ADaM", "level": 1, "path": "programs/adam" },
+    { "id": "tfl", "label": "TFL", "level": 2, "path": "programs/tfl" },
+    { "id": "qc", "label": "QC", "level": 3, "path": "programs/qc" },
+    { "id": "drivers", "label": "Drivers", "level": 4, "path": "programs" }
+  ],
+  "modules": [
+    {
+      "id": "macros.m_assign_trt",
+      "name": "%m_assign_trt",
+      "kind": "macro",
+      "package": "macros",
+      "path": "macros/m_assign_trt.sas",
+      "exports": ["m_assign_trt"]
+    },
+    {
+      "id": "macros.m_popflag",
+      "name": "%m_popflag",
+      "kind": "macro",
+      "package": "macros",
+      "path": "macros/m_popflag.sas",
+      "exports": ["m_popflag"]
+    },
+    {
+      "id": "adam.adsl",
+      "name": "adsl.sas",
+      "kind": "program",
+      "package": "adam",
+      "path": "programs/adam/adsl.sas",
+      "exports": ["ADSL"]
+    },
+    {
+      "id": "adam.adae",
+      "name": "adae.sas",
+      "kind": "program",
+      "package": "adam",
+      "path": "programs/adam/adae.sas",
+      "exports": ["ADAE"]
+    },
+    {
+      "id": "tfl.t_demog",
+      "name": "t_demog.sas",
+      "kind": "program",
+      "package": "tfl",
+      "path": "programs/tfl/t_demog.sas",
+      "exports": ["t_demog"]
+    },
+    {
+      "id": "tfl.t_ae_summary",
+      "name": "t_ae_summary.sas",
+      "kind": "program",
+      "package": "tfl",
+      "path": "programs/tfl/t_ae_summary.sas",
+      "exports": ["t_ae_summary"]
+    },
+    {
+      "id": "qc.qc_adsl",
+      "name": "qc_adsl.sas",
+      "kind": "program",
+      "package": "qc",
+      "path": "programs/qc/qc_adsl.sas"
+    },
+    {
+      "id": "qc.qc_t_demog",
+      "name": "qc_t_demog.sas",
+      "kind": "program",
+      "package": "qc",
+      "path": "programs/qc/qc_t_demog.sas"
+    },
+    {
+      "id": "drivers.run_all",
+      "name": "_run_all.sas",
+      "kind": "driver",
+      "package": "drivers",
+      "path": "programs/_run_all.sas"
+    }
+  ],
+  "edges": [
+    {
+      "from": "adam.adsl",
+      "to": "macros.m_assign_trt",
+      "kind": "macro-call",
+      "strength": "strong",
+      "evidence": [{ "path": "programs/adam/adsl.sas", "line": 48, "snippet": "%m_assign_trt(ds=work.subj);" }]
+    },
+    {
+      "from": "adam.adsl",
+      "to": "macros.m_popflag",
+      "kind": "macro-call",
+      "strength": "strong",
+      "evidence": [{ "path": "programs/adam/adsl.sas", "line": 61, "snippet": "%m_popflag(in=adsl);" }]
+    },
+    {
+      "from": "adam.adae",
+      "to": "adam.adsl",
+      "kind": "reads-dataset",
+      "strength": "weak",
+      "evidence": [{ "path": "programs/adam/adae.sas", "line": 22, "snippet": "merge adam.adsl ..." }]
+    },
+    {
+      "from": "tfl.t_demog",
+      "to": "adam.adsl",
+      "kind": "reads-dataset",
+      "strength": "weak"
+    },
+    {
+      "from": "tfl.t_ae_summary",
+      "to": "adam.adae",
+      "kind": "reads-dataset",
+      "strength": "weak"
+    },
+    {
+      "from": "tfl.t_demog",
+      "to": "macros.m_popflag",
+      "kind": "macro-call",
+      "strength": "strong"
+    },
+    {
+      "from": "qc.qc_adsl",
+      "to": "adam.adsl",
+      "kind": "implements-qc",
+      "strength": "strong"
+    },
+    {
+      "from": "qc.qc_t_demog",
+      "to": "tfl.t_demog",
+      "kind": "implements-qc",
+      "strength": "strong"
+    },
+    {
+      "from": "drivers.run_all",
+      "to": "adam.adsl",
+      "kind": "include",
+      "strength": "strong",
+      "evidence": [{ "path": "programs/_run_all.sas", "line": 10, "snippet": "%include \"programs/adam/adsl.sas\";" }]
+    },
+    {
+      "from": "drivers.run_all",
+      "to": "adam.adae",
+      "kind": "include",
+      "strength": "strong"
+    },
+    {
+      "from": "drivers.run_all",
+      "to": "tfl.t_demog",
+      "kind": "include",
+      "strength": "strong"
+    },
+    {
+      "from": "drivers.run_all",
+      "to": "tfl.t_ae_summary",
+      "kind": "include",
+      "strength": "strong"
+    },
+    {
+      "from": "drivers.run_all",
+      "to": "qc.qc_adsl",
+      "kind": "include",
+      "strength": "strong"
+    }
+  ],
+  "foreign": [
+    { "id": "foreign.sdtm", "name": "SDTM (sponsor)", "kind": "library" },
+    { "id": "foreign.sashelp", "name": "SASHELP", "kind": "library" }
+  ],
+  "proposals": [
+    {
+      "id": "prop-split-adam",
+      "label": "Split ADaM: core vs AE",
+      "repackage": {
+        "adam.adsl": "adam-core",
+        "adam.adae": "adam-ae"
+      },
+      "notes": "What-if: review ADSL vs ADAE cohesion before moving folders"
+    }
+  ],
+  "metrics": {
+    "adam.adsl": { "loc": 420, "pctIfDepthMax": 4, "macroCallCount": 12, "hasQcTwin": true, "heat": 0.55 },
+    "adam.adae": { "loc": 310, "pctIfDepthMax": 3, "macroCallCount": 6, "hasQcTwin": false, "heat": 0.48 },
+    "tfl.t_demog": { "loc": 180, "pctIfDepthMax": 2, "macroCallCount": 3, "hasQcTwin": true, "heat": 0.28 },
+    "tfl.t_ae_summary": { "loc": 260, "pctIfDepthMax": 5, "macroCallCount": 4, "hasQcTwin": false, "heat": 0.71 },
+    "qc.qc_adsl": { "loc": 200, "heat": 0.22 },
+    "drivers.run_all": { "loc": 40, "heat": 0.1 }
+  }
+}
