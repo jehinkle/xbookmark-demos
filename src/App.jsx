@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { euclid, groups, bjorklund, gcdTrace } from './lib/euclid'
+import MathNotes from './MathNotes'
 import { getCtx, play } from './lib/audio'
 
 const VOICES = ['kick', 'snare', 'hat', 'bell', 'bass']
@@ -282,6 +283,8 @@ export default function App() {
           {showFold && <Fold k={cur.k} n={n} />}
         </aside>
       </main>
+
+      <MathNotes k={cur.k} n={n} />
 
       <footer>
         Inspired by <a href="https://x.com/anabology/status/2112601639672566182" target="_blank" rel="noreferrer">@anabology — “Claudia Explains: Euclid”</a> ·
