@@ -1,28 +1,18 @@
-# xbookmark-demos
+# Euclid Rhythms — Bjorklund/Toussaint sequencer
 
-Personal sandbox for **Demo Lab**: throwaway demos inspired by interesting X bookmarks (and pasted links in v0).
+Demo Lab throwaway inspired by [@anabology — "Claudia Explains: Euclid"](https://x.com/anabology/status/2112601639672566182).
 
-## How demos work
+**Branch:** `demo/2026-10-20-euclid-rhythms` · do **not** merge to `main` unless intentional.
 
-1. Create a branch: `demo/YYYY-MM-DD-<slug>`
-2. Build a minimal Vite + React page that shows the idea
-3. Open a PR from that branch
-4. **Cloudflare Pages** deploys a preview URL on the PR (`*.xbookmark-demos.pages.dev`)
+- Circular SVG sequencer: hits as glowing nodes joined into an inscribed polygon, sweeping playhead, flash on hit
+- Linear step rows with group brackets (e.g. 3-3-2) from the gaps between hits
+- HITS / STEPS (3–24) / ROTATE / BPM, play/stop; Web Audio synthesized kick, snare, hat, bell, bass (no audio files)
+- Presets: four on the floor, tresillo, dembow, cinquillo, bossa clave, bembé (with piano octave: white keys = hits)
+- Up to 3 concentric layers sharing one playhead; optional bass = inverse of kick
+- "Show the fold": Bjorklund stages animated + Euclid subtraction gcd trace
 
-Do **not** put secrets, API tokens, or `.env` files in this repo. Mock anything that needs keys.
-
-`main` is the production splash / home. Prefer leaving demo work on PR branches; only merge when you intentionally want something on production.
-
-## Local
+Audio starts only after a user click. No secrets, no network calls.
 
 ```bash
-npm install
-npm run dev
-npm run build   # output → dist/ (Cloudflare Pages build output)
+npm install && npm run dev
 ```
-
-## Stack
-
-- Vite + React
-- Build command: `npm run build`
-- Output directory: `dist`
