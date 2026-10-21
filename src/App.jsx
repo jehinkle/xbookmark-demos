@@ -31,6 +31,11 @@ export default function App() {
   const setSort = k => { if (k === sort) setDir(d => -d); else { setSortS(k); setDir(1) } }
   const arrow = k => sort === k ? (dir === 1 ? ' ▲' : ' ▼') : ''
   const [tip, setTip] = useState(null)
+  const [hov, setHov] = useState(null)
+  const [mapBy, setMapBy] = useState('overall')
+  const [mtip, setMtip] = useState(null)
+  const [flash, setFlash] = useState(null)
+  const mapRef = useRef(null)
   const posterRef = useRef(null)
   const { raw, map } = STATES[abbr]
 
@@ -48,6 +53,16 @@ export default function App() {
   const n = rows.length
   const shown = useMemo(() => [...rows].sort((a, b) => dir * (sort === 'avg' ? a.overall - b.overall : sort === 'name' ? a.name.localeCompare(b.name) : (a.rk[sort] - b.rk[sort] || a.overall - b.overall))), [rows, sort, dir])
   const last = rows[n - 1]
+  const mapRank = c => mapBy === 'overall' ? c.overall : c.rk[mapBy]
+  const mapLabel = mapBy === 'overall' ? 'overall rank' : COLS.find(c => c.key === mapBy).label.toLowerCase()
+  const goRow = c => {
+    const el = document.getElementById('row-' + c.fips)
+    if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); setFlash(c.fips); setTimeout(() => setFlash(f => f === c.fips ? null : f), 2200) }
+  }
+  const downloadMap = async () => {
+    const url = await toPng(mapRef.current, { pixelRatio: 2, backgroundColor: '#0b1530' })
+    const a = document.createElement('a'); a.href = url; a.download = `${abbr}-county-futures-map.png`; a.click()
+  }
 
   const download = async () => {
     const url = await toPng(posterRef.current, { pixelRatio: 2, backgroundColor: '#0b1530' })
@@ -59,7 +74,8 @@ export default function App() {
       <div className="toolbar">
         <label>State <select value={abbr} onChange={e => setAbbr(e.target.value)}>{Object.keys(STATES).map(s => <option key={s}>{s}</option>)}</select></label>
         <span className="hint">Click a column header to re-sort · hover a chip for the value</span>
-        <button onClick={download}>⬇ Download PNG</button>
+        <button onClick={downloadMap}>⬇ Map PNG</button>
+        <button onClick={download}>⬇ Poster PNG</button>
       </div>
       <div className="poster" ref={posterRef}>
         <header className="hero">
@@ -86,6 +102,24 @@ export default function App() {
           </svg>
         </header>
 
+        <section className="mapsec" ref={mapRef}>
+          <div className="maphead">
+            <div><b>{raw.state.toUpperCase()} AT A GLANCE</b><span> · counties shaded by {mapLabel}</span></div>
+            <label>Color by <select value={mapBy} onChange={e => setMapBy(e.target.value)}>
+              <option value="overall">Overall rank</option>
+              {COLS.map(c => <option key={c.key} value={c.key}>{c.label.charAt(0) + c.label.slice(1).toLowerCase()}</option>)}
+            </select></label>
+          </div>
+          <svg className="bigmap" viewBox={`0 0 ${map.w} ${map.h}`} onMouseLeave={() => { setHov(null); setMtip(null) }}>
+            {rows.map(c => <path key={c.fips} d={map.paths[c.fips]} fill={heat(mapRank(c), n)} stroke="#0b1530" strokeWidth=".35" style={{ cursor: 'pointer' }}
+              onMouseMove={e => { setHov(c.fips); setMtip({ x: e.clientX, y: e.clientY, c }) }}
+              onClick={e => { setHov(c.fips); setMtip({ x: e.clientX, y: e.clientY, c }); goRow(c) }} />)}
+            {hov && map.paths[hov] && <path d={map.paths[hov]} fill="none" stroke="#fff" strokeWidth="1.1" pointerEvents="none" />}
+          </svg>
+          <div className="mlegend"><span>#1 best</span><div className="bar" style={{ background: `linear-gradient(90deg,${[1, 24, 48, 72, n].map(r => heat(r, n)).join(',')})` }} /><span>#{n} worst</span></div>
+          <div className="mnote">Hover a county for its component ranks · click to jump to its row</div>
+        </section>
+
         <table>
           <thead>
             <tr>
@@ -99,14 +133,15 @@ export default function App() {
             {shown.map(c => {
               const cls = c.overall <= 3 ? 'top' : c.overall > n - 3 ? 'bot' : ''
               return (
-                <tr key={c.fips} className={cls}>
+                <tr key={c.fips} id={'row-' + c.fips} className={cls + (hov === c.fips ? ' hov' : '') + (flash === c.fips ? ' flash' : '')}
+                  onMouseEnter={() => setHov(c.fips)} onMouseLeave={() => setHov(h => h === c.fips ? null : h)}>
                   <td className="nm"><span className="ov">{c.overall}.</span> {c.name}
                     {cls === 'top' && <span className="tag rise">RISING</span>}{cls === 'bot' && <span className="tag stall">STALLED</span>}</td>
                   {COLS.map(col => <td key={col.key}><span className="chip" style={{ background: heat(c.rk[col.key], n) }}
                     onMouseMove={e => setTip({ x: e.clientX, y: e.clientY, t: `${c.name} — ${col.fmt(c[col.key])}` })}
                     onClick={e => setTip({ x: e.clientX, y: e.clientY, t: `${c.name} — ${col.fmt(c[col.key])}` })}
                     onMouseLeave={() => setTip(null)}>#{c.rk[col.key]}</span></td>)}
-                  <td className="avg">{c.avg.toFixed(1)}</td>
+                  <td><span className="avgc" style={{ background: heat(c.overall, n) }}>{c.avg.toFixed(1)}</span></td>
                 </tr>)
             })}
           </tbody>
@@ -123,6 +158,12 @@ export default function App() {
           </div>
         </footer>
       </div>
+      {mtip && <div className="mtip" style={{ left: Math.min(mtip.x + 14, window.innerWidth - 300), top: Math.min(mtip.y + 14, window.innerHeight - 230) }}>
+        <div className="mt-h"><b>{mtip.c.name} County</b><span className="chip" style={{ background: heat(mtip.c.overall, n) }}>#{mtip.c.overall}/{n}</span></div>
+        <div className="mt-s">Overall rank · avg rank {mtip.c.avg.toFixed(1)}</div>
+        {COLS.map(col => <div key={col.key} className="mt-r"><span className="chip sm" style={{ background: heat(mtip.c.rk[col.key], n) }}>#{mtip.c.rk[col.key]}/{n}</span>
+          <div><b>{col.icon} {col.label.charAt(0) + col.label.slice(1).toLowerCase()}</b><small>{col.fmt(mtip.c[col.key])}</small></div></div>)}
+      </div>}
       {tip && <div className="tip" style={{ left: tip.x + 12, top: tip.y + 12 }}>{tip.t}</div>}
     </div>
   )
