@@ -26,7 +26,10 @@ function heat(rank, n) {
 
 export default function App() {
   const [abbr, setAbbr] = useState('TN')
-  const [sort, setSort] = useState('avg')
+  const [sort, setSortS] = useState('avg')
+  const [dir, setDir] = useState(1)
+  const setSort = k => { if (k === sort) setDir(d => -d); else { setSortS(k); setDir(1) } }
+  const arrow = k => sort === k ? (dir === 1 ? ' ▲' : ' ▼') : ''
   const [tip, setTip] = useState(null)
   const posterRef = useRef(null)
   const { raw, map } = STATES[abbr]
@@ -43,7 +46,7 @@ export default function App() {
     return r
   }, [raw])
   const n = rows.length
-  const shown = useMemo(() => sort === 'avg' ? rows : [...rows].sort((a, b) => a.rk[sort] - b.rk[sort] || a.overall - b.overall), [rows, sort])
+  const shown = useMemo(() => [...rows].sort((a, b) => dir * (sort === 'avg' ? a.overall - b.overall : sort === 'name' ? a.name.localeCompare(b.name) : (a.rk[sort] - b.rk[sort] || a.overall - b.overall))), [rows, sort, dir])
   const last = rows[n - 1]
 
   const download = async () => {
@@ -86,10 +89,10 @@ export default function App() {
         <table>
           <thead>
             <tr>
-              <th className="nm" onClick={() => setSort('avg')}>RANK · COUNTY</th>
+              <th className="nm"><span className={'sk' + (sort === 'avg' ? ' on' : '')} onClick={() => setSort('avg')} title="Sort by overall rank">RANK{arrow('avg')}</span> · <span className={'sk' + (sort === 'name' ? ' on' : '')} onClick={() => setSort('name')} title="Sort by county name">COUNTY{arrow('name')}</span></th>
               {COLS.map(c => <th key={c.key} onClick={() => setSort(c.key)} className={sort === c.key ? 'on' : ''} title={c.tip}>
-                <div className="ic">{c.icon}</div>{c.label}<small>{c.sub}</small><small className="b">#1 = best</small></th>)}
-              <th onClick={() => setSort('avg')} className={sort === 'avg' ? 'on' : ''}><div className="ic">⭐</div>AVG RANK<small>of 4 columns</small><small className="b">lower = better</small></th>
+                <div className="ic">{c.icon}</div>{c.label}{arrow(c.key)}<small>{c.sub}</small><small className="b">#1 = best</small></th>)}
+              <th onClick={() => setSort('avg')} className={sort === 'avg' ? 'on' : ''}><div className="ic">⭐</div>AVG RANK{arrow('avg')}<small>of 4 columns</small><small className="b">lower = better</small></th>
             </tr>
           </thead>
           <tbody>
