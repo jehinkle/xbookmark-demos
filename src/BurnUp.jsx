@@ -14,9 +14,9 @@ export default function BurnUp({ t }) {
   const pts = [...shown, ...(t > (shown.at(-1)?.d ?? 0) ? [live] : [])]
   const line = (ps) => ps.map((p, i) => `${i ? 'L' : 'M'}${X(p.d)} ${Y(p.v)}`).join(' ')
   const ann = [
-    { d: adslDay, text: `${fmt(adslDay)}: ADSL validated, populations locked`, row: 2, end: false },
-    { d: GAP.found, text: `${fmt(GAP.found)}: SAP discrepancy found in ADTTE censoring`, row: 1, end: false },
-    { d: GAP.fixed, text: `${fmt(GAP.fixed)}: ADTTE rerouted per SAP v2.1 and re-validated`, row: 0, end: true },
+    { d: adslDay, text: `${fmt(adslDay)}: §6 ADSL branch validated`, row: 2, end: false },
+    { d: GAP.found, text: `${fmt(GAP.found)}: ADTTE censoring conflicts with SAP §9.4.2`, row: 1, end: false },
+    { d: GAP.fixed, text: `${fmt(GAP.fixed)}: SAP v2.1 branch re-derived and re-validated`, row: 0, end: true },
     { d: safetyDay, text: `${fmt(safetyDay)}: safety tables QC-complete`, row: 3, end: true },
   ]
   const ticks = [0, 4, 8, 12, 16, 20, 24]
@@ -26,7 +26,7 @@ export default function BurnUp({ t }) {
     <svg viewBox={`0 0 ${W} ${H}`} className="burnup">
       <text x={M.l - 40} y={36} className="bu-title">
         <tspan fontWeight="700">Milestones completed, out of {N_MS}:</tspan>
-        <tspan fill="#555"> end-of-day counts toward topline / database lock, Days 1–{DAYS}</tspan>
+        <tspan fill="#555"> end-of-day counts toward CSR-ready outputs, Days 1–{DAYS}</tspan>
       </text>
       {PAUSES.map((p) => (
         <g key={p.from}>

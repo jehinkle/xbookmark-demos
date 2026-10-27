@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { nodes, SECTIONS, stateAt, ancestors, R1 } from './lib/model.js'
+import { nodes, SECTIONS, stateAt, ancestors, R1, GAP, sapVersionAt } from './lib/model.js'
 
 const S = 760
 const C = S / 2
@@ -22,12 +22,13 @@ function wedgePath(a0, a1) {
   return `M ${q(30, a0)} L ${q(BAND0 - 4, a0)} A ${BAND0 - 4} ${BAND0 - 4} 0 0 1 ${q(BAND0 - 4, a1)} L ${q(30, a1)} A 30 30 0 0 0 ${q(30, a0)} Z`
 }
 
-export default function Radial({ t, onHover, hover, csrPct }) {
+export default function Radial({ t, onHover, hover, selected, onSelect, ringPct }) {
   const ref = useRef(null)
   const [dpr] = useState(() => Math.min(2, window.devicePixelRatio || 1))
   const smallSecs = SECTIONS.filter((s) => s.small)
   const lump = smallSecs.length ? { a0: smallSecs[0].a0, a1: smallSecs[smallSecs.length - 1].a1 } : null
   const hoverPath = useMemo(() => (hover != null ? ancestors(hover) : []), [hover])
+  const selPath = useMemo(() => (selected != null ? ancestors(selected) : []), [selected])
 
   useEffect(() => {
     const cv = ref.current
@@ -70,43 +71,66 @@ export default function Radial({ t, onHover, hover, csrPct }) {
       g.restore()
     }
     g.globalAlpha = 1
-    // hover dependency path to the CSR
-    if (hoverPath.length) {
-      g.strokeStyle = '#1b2a4a'; g.lineWidth = 1.6
+    const drawPath = (path, color, w) => {
+      g.strokeStyle = color; g.lineWidth = w
       g.beginPath()
-      hoverPath.forEach((i, k) => { const n = nodes[i]; k ? g.lineTo(n.x, n.y) : g.moveTo(n.x, n.y) })
+      path.forEach((i, k) => { const n = nodes[i]; k ? g.lineTo(n.x, n.y) : g.moveTo(n.x, n.y) })
       g.stroke()
-      // upstream subtree (direct children) faint
-      const h = nodes[hover]
-      g.strokeStyle = 'rgba(27,42,74,.35)'; g.lineWidth = 0.8
-      for (const c of h.children) { g.beginPath(); g.moveTo(h.x, h.y); g.lineTo(nodes[c].x, nodes[c].y); g.stroke() }
-      for (const i of hoverPath) {
+    }
+    const drawNodes = (path, focus, edge) => {
+      for (const i of path) {
         const n = nodes[i]; if (!i) continue
         const st = stateAt(n, t)
-        g.fillStyle = n.milestone ? '#c8913a' : COL[st] === COL.todo ? '#8d96a8' : COL[st]
-        g.strokeStyle = '#1b2a4a'; g.lineWidth = 1.2
-        g.beginPath(); g.arc(n.x, n.y, i === hover ? 5 : 3.4, 0, 7); g.fill(); g.stroke()
+        g.fillStyle = n.milestone ? '#c8913a' : st === 'todo' ? '#8d96a8' : COL[st]
+        g.strokeStyle = edge; g.lineWidth = 1.2
+        g.beginPath(); g.arc(n.x, n.y, i === focus ? 5.5 : 3.4, 0, 7); g.fill(); g.stroke()
       }
     }
+    // gap: light the path from the SAP section that changed
+    if (t >= GAP.found && t < GAP.fixed) {
+      g.setLineDash([4, 3]); drawPath(ancestors(GAP.rootIdx), '#e0393b', 2); g.setLineDash([])
+    }
+    // selected (pinned) dependency chain
+    if (selPath.length) {
+      const h = nodes[selected]
+      g.strokeStyle = 'rgba(200,145,58,.55)'; g.lineWidth = 1
+      g.setLineDash([3, 3])
+      for (const i of selPath) for (const j of nodes[i].extra) { g.beginPath(); g.moveTo(nodes[i].x, nodes[i].y); g.lineTo(nodes[j].x, nodes[j].y); g.stroke() }
+      g.setLineDash([])
+      g.strokeStyle = 'rgba(27,42,74,.4)'; g.lineWidth = 0.8
+      for (const c of h.children) { g.beginPath(); g.moveTo(h.x, h.y); g.lineTo(nodes[c].x, nodes[c].y); g.stroke() }
+      drawPath(selPath, '#1b2a4a', 2.4)
+      drawNodes(selPath.flatMap((i) => [i, ...nodes[i].extra]), selected, '#1b2a4a')
+      if (selected) { g.strokeStyle = '#c8913a'; g.lineWidth = 2; g.beginPath(); g.arc(h.x, h.y, 9, 0, 7); g.stroke() }
+    }
+    // hover path to the SAP
+    if (hoverPath.length && hover !== selected) {
+      drawPath(hoverPath, '#5d6f96', 1.4)
+      drawNodes(hoverPath, hover, '#3b4a6b')
+    }
     g.restore()
-  }, [t, hover, hoverPath, dpr])
+  }, [t, hover, hoverPath, selected, selPath, dpr])
 
   const onMove = (e) => {
     const b = e.currentTarget.getBoundingClientRect()
+    onHover(nearest(e), e.clientX - b.left, e.clientY - b.top)
+  }
+
+  const nearest = (e) => {
+    const b = e.currentTarget.getBoundingClientRect()
     const k = S / b.width
     const x = (e.clientX - b.left) * k - C, y = (e.clientY - b.top) * k - C
+    if (x * x + y * y < 26 * 26) return 0
     let best = null, bd = 64
-    if (x * x + y * y < 26 * 26) best = 0
-    else for (let i = 1; i < nodes.length; i++) {
+    for (let i = 1; i < nodes.length; i++) {
       const dx = nodes[i].x - x, dy = nodes[i].y - y, d = dx * dx + dy * dy
       if (d < bd) { bd = d; best = i }
     }
-    onHover(best, e.clientX - b.left, e.clientY - b.top)
+    return best
   }
-
   const label = (s) => (s.small ? '' : s.name)
   return (
-    <div className="radial" onMouseMove={onMove} onMouseLeave={() => onHover(null)}>
+    <div className="radial" onMouseMove={onMove} onMouseLeave={() => onHover(null)} onClick={(e) => onSelect(nearest(e))}>
       <svg className="radial-bg" viewBox={`0 0 ${S} ${S}`}>
         {[0.25, 0.45, 0.65, 0.85, 1].map((f) => (
           <circle key={f} cx={C} cy={C} r={44 + f * (R1 - 44)} fill="none" stroke="#e7eaf0" strokeWidth="1" />
@@ -128,7 +152,7 @@ export default function Radial({ t, onHover, hover, csrPct }) {
         ))}
         {lump && (
           <text className="arc-label">
-            <textPath href="#lp-lump" startOffset="50%" textAnchor="middle">{smallSecs.length} smaller folders</textPath>
+            <textPath href="#lp-lump" startOffset="50%" textAnchor="middle">{smallSecs.length} smaller SAP sections</textPath>
           </text>
         )}
       </svg>
@@ -136,12 +160,12 @@ export default function Radial({ t, onHover, hover, csrPct }) {
       <svg className="radial-fg" viewBox={`0 0 ${S} ${S}`}>
         <circle cx={C} cy={C} r={24} fill="#fff" stroke="#e3d3b4" strokeWidth="3" />
         <circle cx={C} cy={C} r={24} fill="none" stroke="#c8913a" strokeWidth="3"
-          strokeDasharray={`${csrPct * 2 * Math.PI * 24} 999`} transform={`rotate(-90 ${C} ${C})`} />
+          strokeDasharray={`${ringPct * 2 * Math.PI * 24} 999`} transform={`rotate(-90 ${C} ${C})`} />
         <circle cx={C} cy={C} r={15} fill="#111" />
-        <circle cx={C} cy={C} r={4.5} fill={csrPct >= 1 ? '#e2b04f' : '#8a6a32'} />
-        <rect x={C - 30} y={C + 30} width="60" height="32" rx="4" fill="rgba(255,255,255,.88)" />
-        <text x={C} y={C + 46} textAnchor="middle" className="csr-label">CSR</text>
-        <text x={C} y={C + 57} textAnchor="middle" className="csr-sub">XYZ-101</text>
+        <circle cx={C} cy={C} r={4.5} fill={ringPct >= 1 ? '#e2b04f' : '#8a6a32'} />
+        <rect x={C - 38} y={C + 30} width="76" height="32" rx="4" fill="rgba(255,255,255,.88)" />
+        <text x={C} y={C + 46} textAnchor="middle" className="csr-label">SAP</text>
+        <text x={C} y={C + 57} textAnchor="middle" className="csr-sub">XYZ-101 · {sapVersionAt(t)}</text>
       </svg>
     </div>
   )

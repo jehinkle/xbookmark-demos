@@ -1,13 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Radial from './Radial.jsx'
 import BurnUp from './BurnUp.jsx'
-import { nodes, SECTIONS, DAYS, PAUSES, GAP, N_MS, stateAt, msDoneAt, inPause, adslDay, safetyDay, milestones, N_AGENTS } from './lib/model.js'
-
-const QC_TEXT = {
-  todo: 'Not started', wip: 'Being programmed', prog: 'Programmed, awaiting independent QC',
-  mismatch: 'QC mismatch: double-programming diff open', valid: 'Validated (double-programming match)',
-  gap: 'Invalidated: SAP discrepancy, rework queued',
-}
+import DepCard, { QC_TEXT, agentName, progText } from './DepCard.jsx'
+import { nodes, DAYS, PAUSES, GAP, N_MS, stateAt, msDoneAt, inPause, adslDay, safetyDay, milestones, N_AGENTS, allDoneDay, secName, sapVersionAt } from './lib/model.js'
 
 function stats(t) {
   let prog = 0, valid = 0, mm = 0, gap = 0
@@ -24,23 +19,28 @@ function stats(t) {
 }
 
 const EVENTS = [
-  { d: 0.25, text: `Swarm launched: ${N_AGENTS} programming agents start on SDTM and ADSL`, kind: 'info' },
-  ...PAUSES.flatMap((p) => [
-    { d: p.from, text: `Paused: ${p.why}`, kind: 'pause' },
-    { d: p.to, text: 'Resumed', kind: 'info' },
-  ]),
-  { d: adslDay, text: 'ADSL validated: SAFFL / ITTFL / PKFL populations locked', kind: 'ms' },
-  { d: GAP.found, text: 'Gap found: ADTTE PFS censoring does not match SAP §9.4.2 (deaths after 2+ missed scans)', kind: 'gap' },
-  { d: GAP.fixed, text: 'ADTTE rerouted per SAP v2.1: branch re-derived and re-validated', kind: 'fix' },
-  { d: safetyDay, text: 'Safety tables package QC-complete', kind: 'ms' },
-  { d: nodes[0].qc, text: `All ${N_MS} milestones complete: CSR outputs ready for database lock`, kind: 'ms' },
+  { d: 0.25, text: `Swarm launched: ${N_AGENTS} programming agents start from SAP v1.0 (§5 data handling, §6 populations)`, kind: 'info' },
+  { d: PAUSES[0].from, text: `Paused: ${PAUSES[0].why}`, kind: 'pause' },
+  { d: PAUSES[0].to, text: 'Resumed: transfer #2 loaded', kind: 'info' },
+  { d: PAUSES[1].from, text: `Paused: ${PAUSES[1].why}`, kind: 'pause' },
+  { d: PAUSES[1].to, text: 'SAP v2.0 approved: swarm resumes', kind: 'info' },
+  { d: adslDay, text: '§6 ADSL branch fully validated: populations locked', kind: 'ms' },
+  { d: GAP.found, text: `Gap found: ADTTE censoring does not match SAP §9.4.2 (deaths after 2+ missed scans). ${GAP.size} downstream programs invalidated`, kind: 'gap' },
+  { d: GAP.sapFix, text: 'SAP v2.1 clarifies §9.4.2: agents re-derive everything downstream', kind: 'fix' },
+  { d: GAP.fixed, text: '§9.4.2 branch re-derived and re-validated', kind: 'fix' },
+  { d: safetyDay, text: '§14.1 Safety tables QC-complete', kind: 'ms' },
+  { d: allDoneDay, text: `All ${N_MS} milestones complete: CSR-ready outputs for database lock`, kind: 'ms' },
 ].sort((a, b) => a.d - b.d)
+
+// exposed for the screenshot script only
+if (typeof window !== 'undefined') window.__tflNodes = nodes
 
 export default function App() {
   const [t, setT] = useState(9.4)
   const [playing, setPlaying] = useState(false)
   const [speed, setSpeed] = useState(1)
   const [hover, setHover] = useState(null)
+  const [sel, setSel] = useState(null)
   const raf = useRef(0)
 
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function App() {
   }, [playing, speed])
 
   useEffect(() => {
-    const k = (e) => { if (e.code === 'Space' && e.target.tagName !== 'INPUT') { e.preventDefault(); toggle() } }
+    const k = (e) => { if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') { e.preventDefault(); toggle() } }
     window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k)
   })
   const toggle = () => { if (t >= DAYS) setT(0); setPlaying((p) => !p) }
@@ -68,7 +68,7 @@ export default function App() {
   const s = useMemo(() => stats(t), [t])
   const total = nodes.length - 1
   const paused = inPause(t)
-  const csrPct = s.valid / total
+  const ringPct = s.valid / total
   const events = EVENTS.filter((e) => e.d <= t)
   const recentMs = milestones.filter((i) => nodes[i].qc <= t).slice(-4).reverse()
   const hn = hover?.i != null ? nodes[hover.i] : null
@@ -79,8 +79,9 @@ export default function App() {
         <div className="eyebrow">Demo Lab · mock study XYZ-101</div>
         <h1>TFL Swarm Replay</h1>
         <p className="sub">
-          A swarm of programming agents builds a study's SDTM, ADaM and TFL deliverables over {DAYS} days.
-          Each dot is a program or output. Its distance from the center is how far upstream it sits from the CSR. Gold diamonds are the {N_MS} milestones.
+          Every program traces back to the Statistical Analysis Plan at the center. A swarm of agents works outward from it over {DAYS} days:
+          SAP chapters, then rules and specs, ADaM derivations, and TFL outputs at the rim. Distance from the center is the number of dependency steps from the SAP.
+          Gold diamonds are the {N_MS} milestones; the last one is the CSR-ready topline output.
         </p>
       </header>
 
@@ -106,26 +107,31 @@ export default function App() {
 
       <main className="grid">
         <div className="card radial-card">
-          <Radial t={t} hover={hover?.i ?? null} csrPct={csrPct}
+          <Radial t={t} hover={hover?.i ?? null} selected={sel} ringPct={ringPct}
+            onSelect={(i) => setSel(i)}
             onHover={(i, x, y) => setHover(i == null ? null : { i, x, y })} />
-          {hn && (
+          <div className="ring-note">Gold ring: share of programs validated and traceable to SAP {sapVersionAt(t)}</div>
+          {hn && hover.i !== sel && (
             <div className="tip" style={{ left: Math.min(hover.x + 14, 470), top: hover.y + 14 }}>
               <div className="tip-title">{hn.title}</div>
               <div className="tip-id">{hn.id}{hn.milestone ? ' · ◆ milestone' : ''}</div>
               <dl>
                 <dt>Type</dt><dd>{hn.kind}</dd>
-                <dt>Section</dt><dd>{hn.sec >= 0 ? SECTIONS[hn.sec].name : 'Root'}</dd>
-                <dt>Depth</dt><dd>{hn.depth} {hn.depth ? 'steps from CSR' : ''}</dd>
-                <dt>Upstream</dt><dd>{(hn.size - 1).toLocaleString()} dependencies</dd>
-                <dt>Agent</dt><dd>{hn.agent ? `agent-${String(hn.agent).padStart(2, '0')}` : 'swarm lead'}</dd>
-                <dt>Programmed</dt><dd>Day {hn.done.toFixed(1)}{hn.redFrom != null && hn.d0 < 1e8 ? ` (first pass Day ${hn.d0.toFixed(1)})` : ''}</dd>
-                <dt>QC</dt><dd className={'qc-' + stateAt(hn, t)}>{QC_TEXT[stateAt(hn, t)]}{stateAt(hn, t) === 'valid' ? `, Day ${hn.qc.toFixed(1)}` : ''}</dd>
+                <dt>Section</dt><dd>{secName(hn)}</dd>
+                <dt>Depth</dt><dd>{hn.depth ? `${hn.depth} steps from the SAP` : 'Root: the SAP itself'}</dd>
+                <dt>Upstream</dt><dd>{hn.depth ? `${1 + hn.extra.length} parent${hn.extra.length ? 's' : ''}, ${hn.depth}-step path to the SAP` : 'None'}</dd>
+                <dt>Downstream</dt><dd>{(hn.size - 1).toLocaleString()} dependents</dd>
+                <dt>Agent</dt><dd>{agentName(hn)}</dd>
+                <dt>Programmed</dt><dd>{progText(hn)}</dd>
+                <dt>QC</dt><dd className={'qc-' + stateAt(hn, t)}>{hn.depth ? QC_TEXT[stateAt(hn, t)] : `Approved, ${sapVersionAt(t)} in force`}{hn.depth > 0 && stateAt(hn, t) === 'valid' ? `, Day ${hn.qc.toFixed(1)}` : ''}</dd>
               </dl>
+              <div className="tip-hint">Click to pin its dependency chain</div>
             </div>
           )}
         </div>
 
         <aside className="card side">
+          {sel != null ? <DepCard sel={sel} t={t} onSelect={setSel} onClose={() => setSel(null)} /> : <>
           <h3>Legend</h3>
           <ul className="legend">
             <li><i className="dot todo" />Not started</li>
@@ -136,7 +142,7 @@ export default function App() {
             <li><i className="dot gap" />Invalidated by SAP discrepancy</li>
             <li><i className="dia" />Milestone (gold when validated)</li>
           </ul>
-          <p className="hint">Hover a dot to see its dependency path to the CSR. Press space to play or pause.</p>
+          <p className="hint">Hover a dot to see its path to the SAP. Click a dot or diamond to pin its dependency chain by depth. Space plays or pauses.</p>
           <h3>Swarm log</h3>
           <ol className="log">
             {events.slice().reverse().map((e) => (
@@ -151,6 +157,7 @@ export default function App() {
               </ul>
             </>
           )}
+          </>}
         </aside>
       </main>
 
@@ -159,7 +166,7 @@ export default function App() {
       </section>
 
       <footer>
-        Mock data only: a seeded, made-up dependency graph of {total.toLocaleString()} programs for a fictional study. No real study, SAP or agent output.
+        Mock data only: a seeded, made-up dependency graph of {total.toLocaleString()} programs rooted in a fictional study's SAP. No real study, SAP or agent output.
         Inspired by Axiom's <a href="https://x.com/axiommathai/status/2115089844745773304" target="_blank" rel="noreferrer">AxiomProver CFSG post</a> (a swarm formalizing the Classification of Finite Simple Groups in Lean).
         Demo Lab · xbookmark-demos.
       </footer>
