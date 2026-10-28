@@ -41,6 +41,7 @@ export default function App() {
   const [speed, setSpeed] = useState(1)
   const [hover, setHover] = useState(null)
   const [sel, setSel] = useState(null)
+  const [focus, setFocus] = useState(null)
   const raf = useRef(0)
 
   useEffect(() => {
@@ -107,7 +108,7 @@ export default function App() {
 
       <main className="grid">
         <div className="card radial-card">
-          <Radial t={t} hover={hover?.i ?? null} selected={sel} ringPct={ringPct}
+          <Radial t={t} hover={hover?.i ?? null} selected={sel} ringPct={ringPct} focus={focus}
             onSelect={(i) => setSel(i)}
             onHover={(i, x, y) => setHover(i == null ? null : { i, x, y })} />
           <div className="ring-note">Gold ring: share of programs validated and traceable to SAP {sapVersionAt(t)}</div>
@@ -131,7 +132,7 @@ export default function App() {
         </div>
 
         <aside className="card side">
-          {sel != null ? <DepCard sel={sel} t={t} onSelect={setSel} onClose={() => setSel(null)} /> : <>
+          {sel != null ? <DepCard sel={sel} t={t} onSelect={setSel} onClose={() => setSel(null)} onZoom={(i) => setFocus({ i, k: 6, n: Date.now() })} /> : <>
           <h3>Legend</h3>
           <ul className="legend">
             <li><i className="dot todo" />Not started</li>
@@ -142,7 +143,7 @@ export default function App() {
             <li><i className="dot gap" />Invalidated by SAP discrepancy</li>
             <li><i className="dia" />Milestone (gold when validated)</li>
           </ul>
-          <p className="hint">Hover a dot to see its path to the SAP. Click a dot or diamond to pin its dependency chain by depth. Space plays or pauses.</p>
+          <p className="hint">Hover a dot to see its path to the SAP. Click a dot or diamond to pin its dependency chain by depth. Scroll or pinch to zoom the map (labels appear past 4×). Space plays or pauses.</p>
           <h3>Swarm log</h3>
           <ol className="log">
             {events.slice().reverse().map((e) => (

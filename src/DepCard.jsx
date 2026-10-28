@@ -33,7 +33,7 @@ function Mini({ i, t, sel, onSelect, role }) {
   )
 }
 
-export default function DepCard({ sel, t, onSelect, onClose }) {
+export default function DepCard({ sel, t, onSelect, onClose, onZoom }) {
   const box = useRef(null)
   const n = nodes[sel]
   const path = ancestors(sel).reverse() // SAP first
@@ -59,7 +59,10 @@ export default function DepCard({ sel, t, onSelect, onClose }) {
           <div className="dc-eyebrow">Dependency chain · {path.length - 1} steps from the SAP</div>
           <div className="dc-title">{n.title}</div>
         </div>
-        <button className="dc-x" aria-label="Close" onClick={onClose}>×</button>
+        <div className="dc-actions">
+          <button className="dc-zoom" onClick={() => onZoom(sel)} title="Zoom the map to this node">⊕ Zoom to</button>
+          <button className="dc-x" aria-label="Close" onClick={onClose}>×</button>
+        </div>
       </div>
       <div className="dc-body" ref={box}>
         {levels.map((L) => (
