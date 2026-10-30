@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { PackagePanel } from './pkg.jsx'
 import { makeADTTE, km, at, atRisk, logrank, ARMS, PARAMS } from './km.js'
 
 const DATA = makeADTTE()
@@ -43,7 +44,7 @@ export default function App() {
         <label>At-risk interval (months)<input type="number" min="1" value={shell.step} onChange={e => set('step', Math.max(1, +e.target.value || 3))} /></label>
       </aside>
       <main>
-        <nav>{[['table', 'KM estimate table'], ['plot', 'KM plot'], ['data', 'ADTTE data'], ['code', 'R snippet']].map(([k, l]) =>
+        <nav>{[['table', 'KM estimate table'], ['plot', 'KM plot'], ['data', 'ADTTE data'], ['code', 'R snippet'], ['pkg', 'Shell package']].map(([k, l]) =>
           <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}</nav>
         {!fits.length ? <p className="page">Select at least one arm.</p> : <>
         {tab === 'table' && <div className="page">{header(shell.tableNo, 'Table')}
@@ -61,13 +62,14 @@ export default function App() {
           </tbody></table>{footer}</div>}
         {tab === 'plot' && <div className="page">{header(shell.figNo, 'Figure')}<Plot fits={fits} bands={shell.bands} step={shell.step} lr={lr} param={shell.param} />{footer}</div>}
         {tab === 'data' && <Grid rows={rows} q={q} setQ={setQ} />}
+        {tab === 'pkg' && <PackagePanel data={DATA} shell={shell} />}
         {tab === 'code' && <pre className="page code">{rcode(shell, fits, lms)}</pre>}</>}
       </main>
     </div>
   </div>
 }
 
-function Plot({ fits, bands, step, lr, param }) {
+export function Plot({ fits, bands, step, lr, param }) {
   const W = 760, H = 380, m = { l: 120, r: 20, t: 16, b: 44 }
   const tmax = Math.ceil(Math.max(...fits.flatMap(f => f.rows.map(r => r.AVAL))) / step) * step
   const x = t => m.l + t / tmax * (W - m.l - m.r), y = s => m.t + (1 - s) * (H - m.t - m.b)
