@@ -12,6 +12,12 @@ const SAMPLES = [
   { id: 'trial', name: 'Trial registry record', note: 'registry-style clinical page', html: trial, url: 'https://registry.example/study/XT-2026-00101' },
 ]
 
+const QUICK_URLS = [
+  ['earlyphase.com', 'https://www.earlyphase.com/'],
+  ['Wikipedia: Clinical trial', 'https://en.wikipedia.org/wiki/Clinical_trial'],
+  ['stephango.com', 'https://stephango.com/'],
+]
+
 const stripScripts = (h) => h.replace(/<script\b(?![^>]*application\/ld\+json)[\s\S]*?<\/script>/gi, '')
 const bytes = (s) => new Blob([s || '']).size
 const kb = (n) => (n / 1024).toFixed(1) + ' KB'
@@ -57,10 +63,11 @@ export default function App() {
   const steps = {}
   for (const r of res.debug?.removals || []) steps[r.step] = (steps[r.step] || 0) + 1
 
-  async function fetchUrl() {
+  async function fetchUrl(u) {
+    const target = (u || urlIn).trim(); if (u) setUrlIn(u)
     setErr(''); setBusy(true)
     try {
-      const r = await fetch('/api/fetch?url=' + encodeURIComponent(urlIn.trim()))
+      const r = await fetch('/api/fetch?url=' + encodeURIComponent(target))
       const ct = r.headers.get('content-type') || ''
       if (!ct.includes('json')) throw new Error('The /api/fetch function is not available here (local dev or static host). Paste HTML or use a sample instead.')
       const j = await r.json()
@@ -100,6 +107,9 @@ export default function App() {
             <input value={urlIn} onChange={(e) => setUrlIn(e.target.value)} placeholder="https://…" aria-label="Page URL" />
             <button disabled={busy}>{busy ? 'Fetching…' : 'Fetch & defuddle'}</button>
           </form>
+          <div className="samples quick"><span className="muted small">Try a URL:</span>
+            {QUICK_URLS.map(([n, u]) => <button key={u} className="chip" disabled={busy} onClick={() => fetchUrl(u)}>{n}</button>)}
+          </div>
           {err && <div className="err">{err}</div>}
         </div>
       </header>

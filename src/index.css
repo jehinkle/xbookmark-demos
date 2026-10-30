@@ -35,3 +35,4 @@ button{font:inherit}.urlrow button,.paste button,.tabtools button{background:#25
 .rm{border-left:4px solid;padding:5px 9px;margin-bottom:6px;background:#f8fafc;border-radius:0 6px 6px 0}.rmtext{font-size:13px}
 .foot{padding:7px 18px;font-size:12px;color:#64748b;border-top:1px solid #e2e8f0;background:#fff}
 @media (max-width:900px){.app{height:auto}.split{grid-template-columns:1fr}.orig{height:480px;flex:none}.md{max-height:480px}.inputs{min-width:0;width:100%}}
+.quick{align-items:center}.quick .chip{font-size:12px;padding:2px 9px}
