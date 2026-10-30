@@ -68,7 +68,7 @@ export default function App() {
 }
 
 function Plot({ fits, bands, step, lr, param }) {
-  const W = 760, H = 380, m = { l: 56, r: 20, t: 16, b: 44 }
+  const W = 760, H = 380, m = { l: 84, r: 20, t: 16, b: 44 }
   const tmax = Math.ceil(Math.max(...fits.flatMap(f => f.rows.map(r => r.AVAL))) / step) * step
   const x = t => m.l + t / tmax * (W - m.l - m.r), y = s => m.t + (1 - s) * (H - m.t - m.b)
   const ticks = []; for (let t = 0; t <= tmax; t += step) ticks.push(t)
@@ -92,7 +92,7 @@ function Plot({ fits, bands, step, lr, param }) {
       {lr && <text y={fits.length * 18 + 10} textAnchor="start">HR {lr.hr.toFixed(2)} ({lr.hrlo.toFixed(2)}–{lr.hrhi.toFixed(2)}); log-rank p={lr.p < 0.0001 ? '<0.0001' : lr.p.toFixed(4)}</text>}
       <text y={fits.length * 18 + 26} textAnchor="start" fill="#888">| = censored</text></g>
     <text x={4} y={H + 14} textAnchor="start" fontWeight="600">Number at risk</text>
-    {fits.map((f, i) => <g key={f.a}><text x={m.l - 6} y={H + 32 + i * rowH} textAnchor="end" fill={COLORS[f.i]}>{f.a.split(' ')[0]}</text>
+    {fits.map((f, i) => <g key={f.a}><text x={4} y={H + 32 + i * rowH} textAnchor="start" fill={COLORS[f.i]}>{f.a.split(' ')[0]}</text>
       {ticks.map(t => <text key={t} x={x(t)} y={H + 32 + i * rowH} textAnchor="middle">{atRisk(f.rows, t)}</text>)}</g>)}
   </svg>
 }
