@@ -1,0 +1,26 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Why I stopped writing SAS macros for every table – Stat Notes</title>
+<meta name="author" content="Dev Patel"><meta property="og:site_name" content="Stat Notes">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"Why I stopped writing SAS macros for every table","author":{"@type":"Person","name":"Dev Patel"},"datePublished":"2026-09-14"}</script>
+<style>body{font-family:system-ui;margin:0;display:grid;grid-template-columns:220px 1fr 240px}.left,.right{background:#f6f7fb;padding:12px}.post{padding:16px 28px}pre{background:#1e1e1e;color:#eee;padding:10px}footer{grid-column:1/4;background:#eee;padding:12px}.popup{position:fixed;bottom:10px;right:10px;background:#fff;border:2px solid #36c;padding:10px}</style></head><body>
+<div class="left"><nav class="blog-nav"><h4>Stat Notes</h4><ul><li><a href="/">All posts</a></li><li><a href="/tags/sas">#sas</a></li><li><a href="/tags/r">#r</a></li><li><a href="/about">About</a></li></ul></nav></div>
+<div class="post"><article class="post-content">
+<h1>Why I stopped writing SAS macros for every table</h1>
+<div class="post-meta">Dev Patel · September 14, 2026 · <a href="#comments">12 comments</a></div>
+<p>For years my reflex for any new summary table was a new macro with fifteen parameters. It felt reusable. In practice, each macro was used for exactly one study and debugged by exactly one person: me.<sup id="fnref1"><a href="#fn1">1</a></sup></p>
+<h2>What I do instead</h2>
+<p>Now I keep the derivation in a tidy analysis dataset and let a small, boring reporting step do the layout. In R that looks like this:</p>
+<pre><code class="language-r">adsl |&gt;
+  group_by(TRT01A) |&gt;
+  summarise(n = n(), mean_age = mean(AGE))</code></pre>
+<p>The table code becomes so short that a macro would add more complexity than it removes. The statistic is still simple: the mean is <math><mover><mi>x</mi><mo>¯</mo></mover><mo>=</mo><mfrac><mn>1</mn><mi>n</mi></mfrac><mo>∑</mo><msub><mi>x</mi><mi>i</mi></msub></math>.</p>
+<ul><li>Derivations live in ADaM, reviewed once.</li><li>Layout code is disposable.</li><li>Double programming compares datasets, not RTF files.</li></ul>
+<div class="share-buttons">Share: <a href="#">X</a> <a href="#">Facebook</a> <a href="#">Reddit</a></div>
+<ol class="footnotes"><li id="fn1">Some macros did survive, mostly for formatting p-values. <a href="#fnref1">↩</a></li></ol>
+</article>
+<div class="author-bio"><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" width="40"> <b>Dev Patel</b> writes about statistical programming. <a href="#">Follow</a></div>
+<section id="comments" class="comment-list"><h3>12 Comments</h3><div class="comment"><b>Ana</b>: We had the same experience with %TFL_MASTER.</div><div class="comment"><b>Bob</b>: Macros are fine if documented.</div><form><textarea placeholder="Leave a reply"></textarea><button>Post comment</button></form></section>
+</div>
+<div class="right"><aside class="widget"><h4>Popular posts</h4><ul><li><a href="#">CDISC in 10 minutes</a></li><li><a href="#">My R setup</a></li></ul></aside><aside class="widget tag-cloud"><h4>Tags</h4><a href="#">sas</a> <a href="#">r</a> <a href="#">adam</a> <a href="#">tfl</a></aside><div class="sponsored">Sponsored: Learn SAS in 30 days</div></div>
+<footer><p>© 2026 Stat Notes · Powered by BlogEngine · <a href="/rss">RSS</a></p></footer>
+<div class="popup newsletter-modal">Don't miss a post! <button>Subscribe</button> <button>×</button></div>
+</body></html>
