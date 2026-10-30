@@ -1,0 +1,37 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Derive ADTTE with censoring rules — admiral-like docs v2.3</title><meta property="og:site_name" content="TTE Toolkit Docs">
+<style>body{font-family:system-ui;margin:0}.topbar{background:#0b3d91;color:#fff;padding:10px}.layout{display:grid;grid-template-columns:230px 1fr 200px}.sidebar,.toc{background:#f5f7fa;padding:10px;font-size:14px}.content{padding:16px 28px}pre{background:#f0f0f0;padding:10px}.note{border-left:4px solid #0b3d91;background:#eef3ff;padding:8px}footer{background:#eee;padding:10px}</style></head><body>
+<div class="topbar"><b>TTE Toolkit</b> <input placeholder="Search docs…"> <a style="color:#fff" href="#">GitHub</a> <select><option>v2.3</option><option>v2.2</option></select></div>
+<div class="layout"><nav class="sidebar docs-nav"><h4>Getting started</h4><ul><li><a href="#">Install</a></li><li><a href="#">Concepts</a></li></ul><h4>Guides</h4><ul><li><a href="#">ADSL</a></li><li><b>ADTTE</b></li><li><a href="#">ADAE</a></li></ul><h4>Reference</h4><ul><li><a href="#">derive_param_tte()</a></li><li><a href="#">censor_source()</a></li></ul></nav>
+<main class="content"><div class="breadcrumb"><a href="#">Docs</a> / <a href="#">Guides</a> / ADTTE</div>
+<h1>Derive ADTTE with censoring rules</h1>
+<p>This guide shows how to build a progression-free survival (PFS) parameter in an ADTTE dataset, with event and censoring sources defined explicitly so that reviewers can trace every date back to the SAP.</p>
+<h2 id="sources">1. Define event and censoring sources</h2>
+<p>Each source names the dataset, the filter that selects qualifying records, and the date to use.</p>
+<pre><code class="language-r">pd &lt;- event_source(
+  dataset_name = "adrs",
+  filter = PARAMCD == "PD",
+  date = ADT
+)
+lastvisit &lt;- censor_source(
+  dataset_name = "adrs",
+  filter = PARAMCD == "LSTA",
+  date = ADT
+)</code></pre>
+<div class="note"><b>Note:</b> The censoring date must match the rule in your SAP. A mismatch here is the most common reason PFS outputs fail QC.</div>
+<h2 id="derive">2. Derive the parameter</h2>
+<p>Pass the sources to the derivation, along with the start date (usually randomization):</p>
+<pre><code class="language-r">adtte &lt;- derive_param_tte(
+  dataset_adsl = adsl,
+  start_date = RANDDT,
+  event_conditions = list(pd, death),
+  censor_conditions = list(lastvisit),
+  set_values_to = exprs(PARAMCD = "PFS")
+)</code></pre>
+<table><thead><tr><th>Variable</th><th>Meaning</th></tr></thead><tbody><tr><td>AVAL</td><td>Time to event or censoring (days)</td></tr><tr><td>CNSR</td><td>0 = event, 1 = censored</td></tr></tbody></table>
+<div class="feedback">Was this page helpful? <button>👍 Yes</button> <button>👎 No</button></div>
+<div class="pagination"><a href="#">← ADSL</a> <a href="#">ADAE →</a></div>
+<div class="edit-link"><a href="#">Edit this page on GitHub</a></div>
+</main>
+<aside class="toc"><b>On this page</b><ul><li><a href="#sources">Define sources</a></li><li><a href="#derive">Derive the parameter</a></li></ul></aside></div>
+<footer><p>© 2026 TTE Toolkit contributors · MIT License · Built with DocGen</p></footer>
+</body></html>
