@@ -1,0 +1,18 @@
+[
+ {"id":"F1","desc":"TTE events, Schoenfeld, HR 0.75, 1:1","kind":"events","hr":0.75,"hr0":1,"alpha":0.025,"beta":0.1,"r":1},
+ {"id":"F2","desc":"TTE events, Schoenfeld, HR 0.70, 2:1","kind":"events","hr":0.7,"hr0":1,"alpha":0.025,"beta":0.2,"r":2},
+ {"id":"F3","desc":"TTE events, NI HR margin 1.3, true HR 1.0","kind":"events","hr":1.0,"hr0":1.3,"alpha":0.025,"beta":0.1,"r":1},
+ {"id":"F4","desc":"TTE events, Freedman, HR 0.75 (rpact)","kind":"freedman","hr":0.75,"alpha":0.025,"beta":0.1,"r":1},
+ {"id":"F5","desc":"Means, delta 5, SD 12, 1:1","kind":"means","delta":5,"sd":12,"delta0":0,"alpha":0.025,"beta":0.1,"r":1},
+ {"id":"F6","desc":"Means NI, delta 0, margin 3, SD 10, 2:1","kind":"means","delta":0,"sd":10,"delta0":-3,"alpha":0.025,"beta":0.2,"r":2},
+ {"id":"F7","desc":"Rates superiority, 0.45 vs 0.30","kind":"rates","pT":0.45,"pC":0.3,"delta0":0,"alpha":0.025,"beta":0.1,"r":1},
+ {"id":"F8","desc":"Rates NI (Farrington-Manning), 0.80 vs 0.80, margin 0.10","kind":"rates","pT":0.8,"pC":0.8,"delta0":-0.1,"alpha":0.025,"beta":0.2,"r":1},
+ {"id":"G1","desc":"GS 3 looks, LD O'Brien-Fleming, efficacy only","kind":"gs","t":[0.3333333333,0.6666666667,1],"alpha":0.025,"beta":0.1,"sf":"OF"},
+ {"id":"G2","desc":"GS 2 looks, LD Pocock, efficacy only","kind":"gs","t":[0.5,1],"alpha":0.025,"beta":0.2,"sf":"Pocock"},
+ {"id":"G3","desc":"GS 3 looks, HSD(-4) efficacy, unequal timing","kind":"gs","t":[0.4,0.7,1],"alpha":0.025,"beta":0.1,"sf":"HSD","sfPar":-4},
+ {"id":"G4","desc":"GS 3 looks, LD OF + non-binding HSD(-2) futility","kind":"gs","t":[0.3333333333,0.6666666667,1],"alpha":0.025,"beta":0.1,"sf":"OF","futility":{"sf":"HSD","par":-2}},
+ {"id":"G5","desc":"GS 2 looks, LD Pocock + non-binding LD OF futility","kind":"gs","t":[0.5,1],"alpha":0.025,"beta":0.2,"sf":"Pocock","futility":{"sf":"OF"}},
+ {"id":"G6","desc":"GS 4 looks, LD OF efficacy (rpact asOF bounds)","kind":"gs","t":[0.25,0.5,0.75,1],"alpha":0.025,"beta":0.1,"sf":"OF","rpact":true},
+ {"id":"S1","desc":"Bladder (UC) example: OS HR 0.75, median 14 mo, accrual 24, follow-up 18, 5%/yr dropout, IA at 50%/75% events, LD OF + non-binding HSD(-2) futility","kind":"surv","hr":0.75,"medianC":14,"R":24,"F":18,"dropout":0.05,"r":1,"t":[0.5,0.75,1],"alpha":0.025,"beta":0.1,"sf":"OF","futility":{"sf":"HSD","par":-2}},
+ {"id":"S2","desc":"Survival fixed design 2:1, HR 0.7, median 10, accrual 18, follow-up 12, no dropout","kind":"surv","hr":0.7,"medianC":10,"R":18,"F":12,"dropout":0,"r":2,"t":[1],"alpha":0.025,"beta":0.2,"sf":"OF"}
+]

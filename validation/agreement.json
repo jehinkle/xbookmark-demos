@@ -1,0 +1,497 @@
+[
+ {
+  "id": "F1",
+  "what": "events (gsDesign nEvents)",
+  "js": 507.8443353546266,
+  "ref": 507.844335354626,
+  "diff": 5.684341886080801e-13,
+  "tol": 0.01,
+  "pass": true
+ },
+ {
+  "id": "F2",
+  "what": "events (gsDesign nEvents)",
+  "js": 277.6354926157783,
+  "ref": 277.635492615778,
+  "diff": 2.8421709430404007e-13,
+  "tol": 0.01,
+  "pass": true
+ },
+ {
+  "id": "F3",
+  "what": "events (gsDesign nEvents)",
+  "js": 610.5860072211259,
+  "ref": 610.586007221126,
+  "diff": 1.1368683772161603e-13,
+  "tol": 0.01,
+  "pass": true
+ },
+ {
+  "id": "F4",
+  "what": "events (rpact Freedman)",
+  "js": 514.8637300105905,
+  "ref": 514.863730010591,
+  "diff": 4.547473508864641e-13,
+  "tol": 0.01,
+  "pass": true
+ },
+ {
+  "id": "F5",
+  "what": "N total (gsDesign nNormal)",
+  "js": 242.09102733559195,
+  "ref": 242.091027335592,
+  "diff": 5.684341886080802e-14,
+  "tol": 0.01,
+  "pass": true
+ },
+ {
+  "id": "F6",
+  "what": "N total (gsDesign nNormal)",
+  "js": 392.44398671745444,
+  "ref": 392.443986717454,
+  "diff": 4.547473508864641e-13,
+  "tol": 0.01,
+  "pass": true
+ },
+ {
+  "id": "F7",
+  "what": "N total (gsDesign nBinomial)",
+  "js": 433.6398705640269,
+  "ref": 433.639870520885,
+  "diff": 4.314193802201771e-8,
+  "tol": 0.05,
+  "pass": true
+ },
+ {
+  "id": "F8",
+  "what": "N total (gsDesign nBinomial)",
+  "js": 508.4354177259816,
+  "ref": 508.43540924632,
+  "diff": 0.000008479661630644841,
+  "tol": 0.05,
+  "pass": true
+ },
+ {
+  "id": "G1",
+  "what": "upper z look 1 (gsDesign)",
+  "js": 3.710302873464606,
+  "ref": 3.710302873465,
+  "diff": 3.9390712913700554e-13,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G1",
+  "what": "upper z look 2 (gsDesign)",
+  "js": 2.511427480225792,
+  "ref": 2.511427013832,
+  "diff": 4.663937920312833e-7,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G1",
+  "what": "upper z look 3 (gsDesign)",
+  "js": 1.9930474823431408,
+  "ref": 1.993047522779,
+  "diff": 4.043585932755889e-8,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G1",
+  "what": "inflation factor (gsDesign)",
+  "js": 1.0118527636695123,
+  "ref": 1.011852482808,
+  "diff": 2.808615122695812e-7,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G2",
+  "what": "upper z look 1 (gsDesign)",
+  "js": 2.1569992183446836,
+  "ref": 2.156999218345,
+  "diff": 3.1663560662309465e-13,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G2",
+  "what": "upper z look 2 (gsDesign)",
+  "js": 2.2009769698343478,
+  "ref": 2.200976979837,
+  "diff": 1.0002652039986515e-8,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G2",
+  "what": "inflation factor (gsDesign)",
+  "js": 1.1225502219139176,
+  "ref": 1.122550202926,
+  "diff": 1.8987917682622424e-8,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G3",
+  "what": "upper z look 1 (gsDesign)",
+  "js": 2.9037132381956114,
+  "ref": 2.903713238196,
+  "diff": 3.885780586188048e-13,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G3",
+  "what": "upper z look 2 (gsDesign)",
+  "js": 2.5015019818382713,
+  "ref": 2.501501990283,
+  "diff": 8.444728472056795e-9,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G3",
+  "what": "upper z look 3 (gsDesign)",
+  "js": 2.003788279661933,
+  "ref": 2.003788273606,
+  "diff": 6.055932644244422e-9,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G3",
+  "what": "inflation factor (gsDesign)",
+  "js": 1.0164951775124416,
+  "ref": 1.016494832244,
+  "diff": 3.452684416149765e-7,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G4",
+  "what": "upper z look 1 (gsDesign)",
+  "js": 3.710302873464606,
+  "ref": 3.710302873465,
+  "diff": 3.9390712913700554e-13,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G4",
+  "what": "upper z look 2 (gsDesign)",
+  "js": 2.511427480225792,
+  "ref": 2.511427013832,
+  "diff": 4.663937920312833e-7,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G4",
+  "what": "upper z look 3 (gsDesign)",
+  "js": 1.9930474823431408,
+  "ref": 1.993047522779,
+  "diff": 4.043585932755889e-8,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G4",
+  "what": "futility z look 1 (gsDesign)",
+  "js": -0.24177483857390258,
+  "ref": -0.2417747312873,
+  "diff": 1.0728660257419698e-7,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G4",
+  "what": "futility z look 2 (gsDesign)",
+  "js": 0.9366652913511726,
+  "ref": 0.9366654446785,
+  "diff": 1.5332732739015142e-7,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G4",
+  "what": "futility z look 3 (gsDesign)",
+  "js": 1.9930474823431408,
+  "ref": 1.993047522779,
+  "diff": 4.043585932755889e-8,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G4",
+  "what": "inflation factor (gsDesign)",
+  "js": 1.0665134833190804,
+  "ref": 1.066513601724,
+  "diff": 1.1840491964676403e-7,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G5",
+  "what": "upper z look 1 (gsDesign)",
+  "js": 2.1569992183446836,
+  "ref": 2.156999218345,
+  "diff": 3.1663560662309465e-13,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G5",
+  "what": "upper z look 2 (gsDesign)",
+  "js": 2.2009769698343478,
+  "ref": 2.200976979837,
+  "diff": 1.0002652039986515e-8,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G5",
+  "what": "futility z look 1 (gsDesign)",
+  "js": 0.6680563351745361,
+  "ref": 0.6680564743822,
+  "diff": 1.3920766384067917e-7,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G5",
+  "what": "futility z look 2 (gsDesign)",
+  "js": 2.2009769698343478,
+  "ref": 2.200976979837,
+  "diff": 1.0002652039986515e-8,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G5",
+  "what": "inflation factor (gsDesign)",
+  "js": 1.1717431278781831,
+  "ref": 1.17174328001,
+  "diff": 1.5213181692175226e-7,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G6",
+  "what": "upper z look 1 (gsDesign)",
+  "js": 4.332633646051747,
+  "ref": 4.33263364605,
+  "diff": 1.7470469515501463e-12,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G6",
+  "what": "upper z look 2 (gsDesign)",
+  "js": 2.963131596907596,
+  "ref": 2.96313084198,
+  "diff": 7.549275959917168e-7,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G6",
+  "what": "upper z look 3 (gsDesign)",
+  "js": 2.3590442882890033,
+  "ref": 2.359044391859,
+  "diff": 1.0356999657901156e-7,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G6",
+  "what": "upper z look 4 (gsDesign)",
+  "js": 2.01409015316312,
+  "ref": 2.01409035729,
+  "diff": 2.0412688028770276e-7,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G6",
+  "what": "inflation factor (gsDesign)",
+  "js": 1.0182800241138292,
+  "ref": 1.01827958452,
+  "diff": 4.39593829337781e-7,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G6",
+  "what": "upper z look 1 (rpact)",
+  "js": 4.332633646051747,
+  "ref": 4.33263364605,
+  "diff": 1.7470469515501463e-12,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G6",
+  "what": "upper z look 2 (rpact)",
+  "js": 2.963131596907596,
+  "ref": 2.963131599128,
+  "diff": 2.2204038607753773e-9,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G6",
+  "what": "upper z look 3 (rpact)",
+  "js": 2.3590442882890033,
+  "ref": 2.359044276178,
+  "diff": 1.2111003311332524e-8,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G6",
+  "what": "upper z look 4 (rpact)",
+  "js": 2.01409015316312,
+  "ref": 2.014090143144,
+  "diff": 1.0019119756066175e-8,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "G6",
+  "what": "inflation factor (rpact)",
+  "js": 1.0182800241138292,
+  "ref": 1.018280017057,
+  "diff": 7.056829121054875e-9,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "S1",
+  "what": "max events (rpact)",
+  "js": 549.1019124093123,
+  "ref": 549.10191119965,
+  "diff": 0.0000012096622867829865,
+  "tol": 0.5,
+  "pass": true
+ },
+ {
+  "id": "S1",
+  "what": "max subjects (rpact)",
+  "js": 812.745505429438,
+  "ref": 812.745503638974,
+  "diff": 0.0000017904640117194504,
+  "tol": 1,
+  "pass": true
+ },
+ {
+  "id": "S1",
+  "what": "analysis time look 1, months (rpact)",
+  "js": 22.88837197958963,
+  "ref": 22.888371980088,
+  "diff": 4.983711221484555e-10,
+  "tol": 0.05,
+  "pass": true
+ },
+ {
+  "id": "S1",
+  "what": "analysis time look 2, months (rpact)",
+  "js": 30.362463201183328,
+  "ref": 30.362463201088,
+  "diff": 9.532641342957504e-11,
+  "tol": 0.05,
+  "pass": true
+ },
+ {
+  "id": "S1",
+  "what": "analysis time look 3, months (rpact)",
+  "js": 41.99999999999999,
+  "ref": 42,
+  "diff": 7.105427357601002e-15,
+  "tol": 0.05,
+  "pass": true
+ },
+ {
+  "id": "S1",
+  "what": "HR efficacy bound look 1 (rpact)",
+  "js": 0.6993572109543482,
+  "ref": 0.6993572106789,
+  "diff": 2.754482197886432e-10,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "S1",
+  "what": "HR efficacy bound look 2 (rpact)",
+  "js": 0.7925577556135951,
+  "ref": 0.792557755647,
+  "diff": 3.340494547643402e-11,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "S1",
+  "what": "HR efficacy bound look 3 (rpact)",
+  "js": 0.8420616585524622,
+  "ref": 0.8420616584957,
+  "diff": 5.6762150535405453e-11,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "S1",
+  "what": "futility z look 1 (rpact)",
+  "js": 0.45484778485169597,
+  "ref": 0.454847780326,
+  "diff": 4.525695984636258e-9,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "S1",
+  "what": "futility z look 2 (rpact)",
+  "js": 1.211171538806358,
+  "ref": 1.21117152879,
+  "diff": 1.0016357965270117e-8,
+  "tol": 0.001,
+  "pass": true
+ },
+ {
+  "id": "S2",
+  "what": "max events (rpact)",
+  "js": 277.6354926157783,
+  "ref": 277.635492615778,
+  "diff": 2.8421709430404007e-13,
+  "tol": 0.5,
+  "pass": true
+ },
+ {
+  "id": "S2",
+  "what": "max subjects (rpact)",
+  "js": 415.1692465613827,
+  "ref": 415.169246561383,
+  "diff": 2.8421709430404007e-13,
+  "tol": 1,
+  "pass": true
+ },
+ {
+  "id": "S2",
+  "what": "analysis time look 1, months (rpact)",
+  "js": 29.99999999999999,
+  "ref": 30,
+  "diff": 1.0658141036401503e-14,
+  "tol": 0.05,
+  "pass": true
+ },
+ {
+  "id": "S2",
+  "what": "HR efficacy bound look 1 (rpact)",
+  "js": 0.7791695518006025,
+  "ref": 0.7791695518006,
+  "diff": 2.55351295663786e-15,
+  "tol": 0.001,
+  "pass": true
+ }
+]
