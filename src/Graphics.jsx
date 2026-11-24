@@ -110,7 +110,7 @@ export function GSBoundary() {
           <text x={X(t) - 10} y="146" className="g-label">{Math.round(t * 100)}%</text>
         </g>
       ))}
-      <text x="36" y="16" className="g-label">Z · EFFICACY / FUTILITY</text>
+      <text x="290" y="16" textAnchor="end" className="g-label">Z · EFFICACY / FUTILITY</text>
     </svg>
   )
 }
